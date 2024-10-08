@@ -1,0 +1,21 @@
+﻿<div>
+    @if (isLoading)
+    {
+        <div class="spinner-overlay">
+            <div class="spinner"></div>
+        </div>
+    }
+
+    @if (!isLoading)
+    {
+        <div>
+            <!-- Asıl içerik burada gösterilebilir -->
+            @ChildContent
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public bool isLoading { get; set; }
+    [Parameter] public RenderFragment ChildContent { get; set; }
+}

@@ -1,0 +1,22 @@
+﻿@inherits LayoutComponentBase
+
+<RadzenComponents @rendermode="new InteractiveServerRenderMode(prerender: false)" />
+<RadzenLayout>
+    <Header sidebarExpanded="sidebar1Expanded" OnSidebarToggle="ToggleSidebar" />
+    <Sidebar sidebarExpanded="sidebar1Expanded" />
+    <RadzenBody>
+        <div class="rz-p-4">
+            @Body
+        </div>
+    </RadzenBody>
+    @* <Footer /> *@
+</RadzenLayout>
+
+@code {
+    bool sidebar1Expanded = true;
+
+    void ToggleSidebar()
+    {
+        sidebar1Expanded = !sidebar1Expanded;
+    }
+}

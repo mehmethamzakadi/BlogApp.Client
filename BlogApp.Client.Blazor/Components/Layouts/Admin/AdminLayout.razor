@@ -1,22 +1,75 @@
-﻿@inherits LayoutComponentBase
+﻿@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager _navigationManager
 
-<RadzenComponents @rendermode="new InteractiveServerRenderMode(prerender: false)" />
-<RadzenLayout>
-    <Header sidebarExpanded="sidebar1Expanded" OnSidebarToggle="ToggleSidebar" />
-    <Sidebar sidebarExpanded="sidebar1Expanded" />
-    <RadzenBody>
-        <div class="rz-p-4">
-            @Body
-        </div>
-    </RadzenBody>
-    @* <Footer /> *@
-</RadzenLayout>
+@inherits LayoutComponentBase
+
+@* Required *@
+<MudThemeProvider />
+<MudPopoverProvider />
+
+@* Needed for dialogs *@
+<MudDialogProvider />
+
+@* Needed for snackbars *@
+<MudSnackbarProvider />
+
+@if (IsShowContent)
+{
+    <MudLayout>
+        <MudAppBar Elevation="1">
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+            <MudText Typo="Typo.h6" Class="ml-3" Edge="@Edge.End">Admin Paneli</MudText>
+            <MudSpacer />
+            <AuthorizeView>
+                <Authorized>
+                    <MudText Typo="Typo.body2" Class="ml-3">Hoşgeldiniz, @user.Identity?.Name!</MudText>
+                    <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" Edge="Edge.End" @onclick="Logout" ButtonType="ButtonType.Button" />
+                </Authorized>
+                <NotAuthorized>
+                    <MudText Typo="Typo.body2" Class="ml-3">Yetkisiz Kullanıcı!</MudText>
+                </NotAuthorized>
+            </AuthorizeView>
+        </MudAppBar>
+        <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+            <NavMenu />
+        </MudDrawer>
+        <MudMainContent>
+            <MudContainer Fixed="true">
+                @Body
+            </MudContainer>
+
+        </MudMainContent>
+    </MudLayout>
+}
 
 @code {
-    bool sidebar1Expanded = true;
 
-    void ToggleSidebar()
+    bool _drawerOpen = true;
+    void DrawerToggle()
     {
-        sidebar1Expanded = !sidebar1Expanded;
+        _drawerOpen = !_drawerOpen;
+    }
+
+    public bool IsShowContent { get; set; }
+    private ClaimsPrincipal user;
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await ((CustomAuthStateProvider)AuthStateProvider).GetAuthenticationStateAsync();
+        user = authState.User;
+
+        if (!user.Identity.IsAuthenticated)
+        {
+            _navigationManager.NavigateTo("/login");
+        }
+        else
+        {
+            IsShowContent = true;
+        }
+    }
+
+    private async Task Logout()
+    {
+        await ((CustomAuthStateProvider)AuthStateProvider).MarkUserAsLoggedOut();
+        _navigationManager.NavigateTo("/");
     }
 }

@@ -1,12 +1,11 @@
 ﻿<Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
         <RouteView RouteData="routeData" DefaultLayout="typeof(Layouts.Home.HomeLayout)" />
-        @* <FocusOnNavigate RouteData="routeData" Selector="h1" /> *@
     </Found>
-   @*  <NotFound>
+    <NotFound>
         <PageTitle>Bulunamadı</PageTitle>
         <LayoutView Layout="@typeof(Layouts.Home.HomeLayout)">
             <p role="alert">Üzgünüz, bu adreste hiçbir şey yok.</p>
         </LayoutView>
-    </NotFound> *@
+    </NotFound>
 </Router>

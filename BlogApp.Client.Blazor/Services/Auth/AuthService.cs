@@ -1,13 +1,13 @@
-﻿using Blazored.LocalStorage;
-using BlogApp.Client.Blazor.Models.Auth;
+﻿using BlogApp.Client.Blazor.Models.Auth;
 using BlogApp.Client.Blazor.Models.Common;
 using BlogApp.Client.Blazor.States.Authentication;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.AspNetCore.Identity.Data;
 using LoginRequest = BlogApp.Client.Blazor.Models.Auth.LoginRequest;
 
 namespace BlogApp.Client.Blazor.Services.Auth;
 
-public class AuthService(HttpClient httpClient, ILocalStorageService localStorageService) : IAuthService
+public class AuthService(HttpClient httpClient, ProtectedLocalStorage localStorageService) : IAuthService
 {
     public async Task<Result<string>> CreateUser(RegisterRequest registerRequest)
     {
@@ -40,11 +40,11 @@ public class AuthService(HttpClient httpClient, ILocalStorageService localStorag
         var loginResponse = AuthGenerics.DeserializeJsonString<Result<LoginResponse>>(apiResponse);
         if (loginResponse.Success)
         {
-            await localStorageService.SetItemAsStringAsync("token", loginResponse.Data.Token);
+            await localStorageService.SetAsync("sessionState", loginResponse.Data);
         }
         else
         {
-            await localStorageService.RemoveItemAsync("token");
+            await localStorageService.DeleteAsync("sessionState");
         }
 
         return loginResponse;

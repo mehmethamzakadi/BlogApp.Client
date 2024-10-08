@@ -1,5 +1,6 @@
 ﻿@page "/Login";
 
+@inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager _navigationManager
 @inject IAuthService userService
 
@@ -66,6 +67,7 @@
         isLoading = false;
         if (result.Success)
         {
+            await ((CustomAuthStateProvider)AuthStateProvider).MarkUserAsAuthenticated(result.Data);
             _navigationManager.NavigateTo("/Admin");
         }
     }

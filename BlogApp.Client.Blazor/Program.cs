@@ -1,28 +1,27 @@
-using Blazored.LocalStorage;
 using BlogApp.Client.Blazor.Components;
 using BlogApp.Client.Blazor.Services.Auth;
 using BlogApp.Client.Blazor.Services.Common;
 using BlogApp.Client.Blazor.States.Authentication;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
-using Radzen;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddRadzenComponents();
+builder.Services.AddMudServices();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
+builder.Services.AddAuthentication();
+builder.Services.AddCascadingAuthenticationState();
+
+
 
 builder.Services.AddHttpClient();
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.Configuration.GetSection("BaseApiUrl").Value!) });
 
-builder.Services.AddScoped<DialogService>();
-builder.Services.AddBlazoredLocalStorage();
-
+builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 builder.Services.AddScoped<IHttpClientService, HttpClientService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
@@ -42,6 +41,8 @@ app.UseStaticFiles();
 
 app.UseAntiforgery();
 
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

@@ -1,17 +1,18 @@
-﻿using Blazored.LocalStorage;
-using BlogApp.Client.Blazor.Models.Common;
+﻿using BlogApp.Client.Blazor.Models.Common;
 using System.Net.Http.Headers;
 using System.Net;
 using System.Text.Json;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
+using BlogApp.Client.Blazor.Models.Auth;
 
 namespace BlogApp.Client.Blazor.Services.Common;
 
 public class HttpClientService : IHttpClientService
 {
     private readonly HttpClient _httpClient;
-    private readonly ILocalStorageService _localStorageService;
+    private readonly ProtectedLocalStorage _localStorageService;
 
-    public HttpClientService(HttpClient httpClient, ILocalStorageService localStorageService)
+    public HttpClientService(HttpClient httpClient, ProtectedLocalStorage localStorageService)
     {
         _httpClient = httpClient;
         _localStorageService = localStorageService;
@@ -19,8 +20,8 @@ public class HttpClientService : IHttpClientService
 
     private async Task SetAuthorizationHeader()
     {
-        var token = await _localStorageService.GetItemAsStringAsync("token");
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var token = await _localStorageService.GetAsync<LoginResponse>("sessionState");
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value.Token);
     }
 
     private async Task<Result<T>> GetResponse<T>(HttpResponseMessage httpResponse)

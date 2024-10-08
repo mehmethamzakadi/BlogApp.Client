@@ -1,0 +1,21 @@
+﻿<MudPaper Class="d-inline-flex py-3" Elevation="0">
+    <MudNavMenu Class="mud-width-full">
+       @*  <MudText Typo="Typo.h6" Class="px-4">Material</MudText>
+        <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">Icons</MudText> 
+        <MudDivider Class="my-2" />*@
+        <MudNavLink Href="/Admin" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+        <MudNavLink Href="/Admin/Categories" Icon="@Icons.Material.Filled.Category">Kategori Yönetimi</MudNavLink>
+
+        <MudNavGroup Title="Yazılar" Icon="@Icons.Material.Filled.Article" Expanded="false">
+            <MudNavLink Href="/Admin/Articles" Icon="@Icons.Material.Filled.Book" IconColor="Color.Success">Makale Listesi</MudNavLink>
+            <MudNavLink Href="/Admin/Articles/Add" Icon="@Icons.Material.Filled.PostAdd" IconColor="Color.Info">Yeni Makale Ekle</MudNavLink>
+            <MudNavLink Href="/Admin/Articles/Drafts" Icon="@Icons.Material.Filled.Drafts" IconColor="Color.Info">Taslaklar</MudNavLink>
+        </MudNavGroup>
+
+        <MudNavGroup Title="Kullanıcı Yönetimi" Icon="@Icons.Material.Filled.People" Expanded="false">
+            <MudNavLink Href="/Admin/Users" Icon="@Icons.Material.Filled.VerifiedUser" IconColor="Color.Success">Kullanıcı Listesi</MudNavLink>
+            <MudNavLink Href="/Admin/Users/Add" Icon="@Icons.Material.Filled.Add" IconColor="Color.Info">Yeni Kullanıcı Ekle</MudNavLink>
+            <MudNavLink Href="/Admin/Users/Roles" Icon="@Icons.Material.Filled.SupervisedUserCircle" IconColor="Color.Info">Kullanıcı Rolleri</MudNavLink>
+        </MudNavGroup>
+    </MudNavMenu>
+</MudPaper>

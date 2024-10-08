@@ -1,6 +1,14 @@
 ﻿@inherits LayoutComponentBase
 
-<RadzenComponents @rendermode="new InteractiveServerRenderMode(prerender: false)" />
+@* Required *@
+<MudThemeProvider />
+<MudPopoverProvider />
+
+@* Needed for dialogs *@
+<MudDialogProvider />
+
+@* Needed for snackbars *@
+<MudSnackbarProvider />
 
 <div>
     @Body

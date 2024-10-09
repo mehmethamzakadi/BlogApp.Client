@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
-namespace BlogApp.Client.Blazor.States.Authentication;
+namespace BlogApp.Client.Blazor.States.Auth;
 
 public class CustomAuthStateProvider(ProtectedLocalStorage localStorage) : AuthenticationStateProvider
 {

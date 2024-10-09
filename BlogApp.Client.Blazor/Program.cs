@@ -1,12 +1,15 @@
+using Blazored.LocalStorage;
 using BlogApp.Client.Blazor.Components;
 using BlogApp.Client.Blazor.Services.Auth;
-using BlogApp.Client.Blazor.Services.Common;
-using BlogApp.Client.Blazor.States.Authentication;
+using BlogApp.Client.Blazor.Services.Category;
+using BlogApp.Client.Blazor.SharedKernel.Services;
+using BlogApp.Client.Blazor.States.Auth;
 using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddMudServices();
 
 // Add services to the container.
@@ -24,6 +27,8 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 builder.Services.AddScoped<IHttpClientService, HttpClientService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+
 
 var app = builder.Build();
 

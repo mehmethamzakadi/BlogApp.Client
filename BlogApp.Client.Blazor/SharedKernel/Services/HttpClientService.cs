@@ -1,11 +1,11 @@
-﻿using BlogApp.Client.Blazor.Models.Common;
-using System.Net.Http.Headers;
-using System.Net;
-using System.Text.Json;
+﻿using BlogApp.Client.Blazor.Models.Auth;
+using BlogApp.Client.Blazor.SharedKernel.Models;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
-using BlogApp.Client.Blazor.Models.Auth;
+using System.Net;
+using System.Net.Http.Headers;
+using System.Text.Json;
 
-namespace BlogApp.Client.Blazor.Services.Common;
+namespace BlogApp.Client.Blazor.SharedKernel.Services;
 
 public class HttpClientService : IHttpClientService
 {
@@ -20,20 +20,21 @@ public class HttpClientService : IHttpClientService
 
     private async Task SetAuthorizationHeader()
     {
-        var token = await _localStorageService.GetAsync<LoginResponse>("sessionState");
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Value.Token);
+        var sessionState = await _localStorageService.GetAsync<LoginResponse>("sessionState");
+        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", sessionState.Value.Token);
+
     }
 
-    private async Task<Result<T>> GetResponse<T>(HttpResponseMessage httpResponse)
+    private async Task<T> GetResponse<T>(HttpResponseMessage httpResponse)
     {
         if (httpResponse.StatusCode == HttpStatusCode.Unauthorized)
         {
-            return new Result<T> { Success = false, Message = "İşlem Yapmaya Yetkiniz Yoktur." };
+            throw new Exception("İşlem Yapmaya Yetkiniz Yoktur.");
         }
         else if (httpResponse.StatusCode == HttpStatusCode.BadRequest || httpResponse.StatusCode == HttpStatusCode.OK)
         {
             var json = await httpResponse.Content.ReadAsStringAsync();
-            var response = JsonSerializer.Deserialize<Result<T>>(json, new JsonSerializerOptions
+            var response = JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
@@ -43,11 +44,11 @@ public class HttpClientService : IHttpClientService
         {
             httpResponse.EnsureSuccessStatusCode();
         }
-        return new Result<T>();
+        throw new Exception("Bir hata oluştu.");
     }
 
     // Generic GET isteği yapma metodu
-    public async Task<Result<T>> GetAsync<T>(string endpoint)
+    public async Task<T> GetAsync<T>(string endpoint)
     {
         try
         {
@@ -58,12 +59,12 @@ public class HttpClientService : IHttpClientService
         }
         catch (Exception ex)
         {
-            return new Result<T> { Success = false, Message = ex.Message };
+            throw new Exception($"{ex.Message}");
         }
     }
 
     // Generic POST isteği yapma metodu
-    public async Task<Result<T>> PostAsync<T>(string endpoint, HttpContent content)
+    public async Task<T> PostAsync<T>(string endpoint, HttpContent content)
     {
         try
         {
@@ -74,13 +75,13 @@ public class HttpClientService : IHttpClientService
         }
         catch (Exception ex)
         {
-            return new Result<T> { Success = false, Message = ex.Message };
+            throw new Exception($"{ex.Message}");
         }
 
     }
 
     // Generic PUT isteği yapma metodu
-    public async Task<Result<T>> PutAsync<T>(string endpoint, HttpContent content)
+    public async Task<T> PutAsync<T>(string endpoint, HttpContent content)
     {
         try
         {
@@ -91,13 +92,13 @@ public class HttpClientService : IHttpClientService
         }
         catch (Exception ex)
         {
-            return new Result<T> { Success = false, Message = ex.Message };
+            throw new Exception($"{ex.Message}");
         }
 
     }
 
     // Generic DELETE isteği yapma metodu
-    public async Task<Result<T>> DeleteAsync<T>(string endpoint)
+    public async Task<T> DeleteAsync<T>(string endpoint)
     {
         try
         {
@@ -108,7 +109,7 @@ public class HttpClientService : IHttpClientService
         }
         catch (Exception ex)
         {
-            return new Result<T> { Success = false, Message = ex.Message };
+            throw new Exception($"{ex.Message}");
         }
 
     }

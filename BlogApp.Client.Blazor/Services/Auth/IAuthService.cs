@@ -1,5 +1,5 @@
 ﻿using BlogApp.Client.Blazor.Models.Auth;
-using BlogApp.Client.Blazor.Models.Common;
+using BlogApp.Client.Blazor.SharedKernel.Models;
 using Microsoft.AspNetCore.Identity.Data;
 using LoginRequest = BlogApp.Client.Blazor.Models.Auth.LoginRequest;
 

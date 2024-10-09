@@ -1,6 +1,6 @@
 ﻿using BlogApp.Client.Blazor.Models.Auth;
-using BlogApp.Client.Blazor.Models.Common;
-using BlogApp.Client.Blazor.States.Authentication;
+using BlogApp.Client.Blazor.SharedKernel.Models;
+using BlogApp.Client.Blazor.Utils;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.AspNetCore.Identity.Data;
 using LoginRequest = BlogApp.Client.Blazor.Models.Auth.LoginRequest;
@@ -12,24 +12,21 @@ public class AuthService(HttpClient httpClient, ProtectedLocalStorage localStora
     public async Task<Result<string>> CreateUser(RegisterRequest registerRequest)
     {
         var response = await httpClient
-                 .PostAsync("user",
-                     AuthGenerics.GenerateStringContent(
-                     AuthGenerics.SerializeObj(registerRequest)));
+            .PostAsync("user", JsonUtils.GenerateStringContent(JsonUtils.SerializeObj(registerRequest)));
 
         //Read Response
         if (!response.IsSuccessStatusCode)
             return new Result<string> { Data = null, Success = false, Message = "Bir hata oluştu. Tekrar deneyiniz." };
 
         var apiResponse = await response.Content.ReadAsStringAsync();
-        return AuthGenerics.DeserializeJsonString<Result<string>>(apiResponse);
+
+        return JsonUtils.DeserializeJsonString<Result<string>>(apiResponse);
     }
 
     public async Task<Result<LoginResponse>> LoginUser(LoginRequest loginRequest)
     {
         var response = await httpClient
-               .PostAsync("auth/login",
-                   AuthGenerics.GenerateStringContent(
-                   AuthGenerics.SerializeObj(loginRequest)));
+            .PostAsync("auth/login", JsonUtils.GenerateStringContent(JsonUtils.SerializeObj(loginRequest)));
 
         //Read Response
         if (!response.IsSuccessStatusCode)
@@ -37,7 +34,7 @@ public class AuthService(HttpClient httpClient, ProtectedLocalStorage localStora
 
         var apiResponse = await response.Content.ReadAsStringAsync();
 
-        var loginResponse = AuthGenerics.DeserializeJsonString<Result<LoginResponse>>(apiResponse);
+        var loginResponse = JsonUtils.DeserializeJsonString<Result<LoginResponse>>(apiResponse);
         if (loginResponse.Success)
         {
             await localStorageService.SetAsync("sessionState", loginResponse.Data);

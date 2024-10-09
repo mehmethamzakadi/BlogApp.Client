@@ -1,4 +1,4 @@
-﻿namespace BlogApp.Client.Blazor.Models.Common;
+﻿namespace BlogApp.Client.Blazor.SharedKernel.Models;
 
 public class PageRequest
 {

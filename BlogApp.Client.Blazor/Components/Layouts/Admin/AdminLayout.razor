@@ -19,9 +19,10 @@
 
                 <AuthorizeView>
                     <Authorized>
-                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0" Style="margin-right: 16px;">
-                            <RadzenLabel Text="Hoşgeldiniz," /> <div style="margin-left:5px; margin-right:5px">@user.Identity?.Name!</div>
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem"> 
+                            <RadzenLabel Text="Hoşgeldiniz," /> <div>@user.Identity?.Name!</div>
                             <RadzenLink @onclick="Logout">Çıkış Yap</RadzenLink>
+                            <RadzenAppearanceToggle />
                         </RadzenStack>
                     </Authorized>
                 </AuthorizeView>

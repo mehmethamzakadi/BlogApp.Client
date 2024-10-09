@@ -8,22 +8,15 @@
 
 @rendermode InteractiveServer
 
-<MudAlert Severity="Severity.Normal" ContentAlignment="HorizontalAlignment.Left">Kategori İşlemleri</MudAlert>
 
-<MudDataGrid Items="@Elements.Items">
-    <Columns>
-        <PropertyColumn Property="x => x.Name" />
-    </Columns>
-</MudDataGrid>
 
 @code {
 
-    private PaginationListResponse<CategoryModel> Elements = new();
 
-    protected override async Task OnInitializedAsync()
-    {
-        var req = new PageRequest { PageIndex = 0, PageSize = 10 };
-        Elements = await categoryService.GetCategoryPaginationListAsync(req);
-    }
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     var req = new PageRequest { PageIndex = 0, PageSize = 10 };
+    //      await categoryService.GetCategoryPaginationListAsync(req);
+    // }
 
 }

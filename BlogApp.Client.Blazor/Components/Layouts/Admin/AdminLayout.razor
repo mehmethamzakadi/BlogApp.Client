@@ -4,46 +4,82 @@
 
 @inherits LayoutComponentBase
 
-@* Required *@
-<MudThemeProvider />
-<MudPopoverProvider />
+<RadzenComponents @rendermode="InteractiveServer" />
 
-@* Needed for dialogs *@
-<MudDialogProvider />
-
-@* Needed for snackbars *@
-<MudSnackbarProvider />
 
 @if (IsShowContent)
 {
-    <MudLayout>
-        <MudAppBar Elevation="6" Dense="true">
-            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-            <MudText Typo="Typo.h6" Class="ml-3" Edge="@Edge.End">Admin Paneli</MudText>
-            <MudSpacer />
-            <AuthorizeView>
-                <Authorized>
-                    <MudText Typo="Typo.body2" Class="ml-3">Hoşgeldiniz, @user.Identity?.Name!</MudText>
-                    <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" Edge="Edge.End" @onclick="Logout" ButtonType="ButtonType.Button" />
-                </Authorized>
-                <NotAuthorized>
-                    <MudText Typo="Typo.body2" Class="ml-3">Yetkisiz Kullanıcı!</MudText>
-                </NotAuthorized>
-            </AuthorizeView>
-        </MudAppBar>
-        <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
-            <NavMenu />
-        </MudDrawer>
-        <MudMainContent>
-            <MudContainer Fixed="true" Style="margin-top:15px">
-                @Body
-            </MudContainer>
+    <RadzenLayout>
+        <RadzenHeader>
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
+                    <RadzenSidebarToggle Click="@(() => sidebar1Expanded = !sidebar1Expanded)" />
+                    <RadzenLabel Text="Header" />
+                </RadzenStack>
 
-        </MudMainContent>
-    </MudLayout>
+                <AuthorizeView>
+                    <Authorized>
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0" Style="margin-right: 16px;">
+                            <RadzenLabel Text="Hoşgeldiniz," /> <div style="margin-left:5px; margin-right:5px">@user.Identity?.Name!</div>
+                            <RadzenLink @onclick="Logout">Çıkış Yap</RadzenLink>
+                        </RadzenStack>
+                    </Authorized>
+                </AuthorizeView>
+            </RadzenStack>
+        </RadzenHeader>
+        <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
+            <RadzenPanelMenu Click="OnParentClicked" Multiple="@multiple">
+                <RadzenPanelMenuItem Text="General" Icon="home">
+                    <RadzenPanelMenuItem Text="Buttons" Path="buttons" Icon="account_circle"></RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="Menu" Path="menu" Icon="line_weight"></RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="FileInput" Path="fileinput" Icon="attach_file"></RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="Dialog" Path="dialog" Icon="perm_media"></RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="Notification" Path="notification" Icon="announcement"></RadzenPanelMenuItem>
+                </RadzenPanelMenuItem>
+                <RadzenPanelMenuItem Text="Inputs" Icon="payment">
+                    <RadzenPanelMenuItem Text="CheckBox" Path="checkbox" Icon="check_circle"></RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="TextBox" Path="textbox" Icon="input"></RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="TextArea" Path="textarea" Icon="description"></RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="Password" Path="password" Icon="payment"></RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="Numeric" Path="numeric" Icon="aspect_ratio"></RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="DatePicker" Path="datepicker" Icon="date_range"></RadzenPanelMenuItem>
+                </RadzenPanelMenuItem>
+                <RadzenPanelMenuItem Text="Data" Icon="save">
+                    <RadzenPanelMenuItem Text="DataGrid" Path="datagrid" Icon="grid_on"></RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="DataList" Path="datalist" Icon="list"></RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="DropDown" Path="dropdown" Icon="dns"></RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="DropDownDataGrid" Path="dropdown-datagrid" Icon="receipt"></RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="ListBox" Path="listbox" Icon="view_list"></RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="TemplateForm" Path="templateform" Icon="line_style"></RadzenPanelMenuItem>
+                </RadzenPanelMenuItem>
+                <RadzenPanelMenuItem Text="Containers" Icon="account_box">
+                    <RadzenPanelMenuItem Text="Tabs" Path="tabs" Icon="tab"></RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="Panel" Path="panel" Icon="content_paste"></RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="Fieldset" Path="fieldset" Icon="account_balance_wallet"></RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="Card" Path="card" Icon="line_style"></RadzenPanelMenuItem>
+                </RadzenPanelMenuItem>
+            </RadzenPanelMenu>
+        </RadzenSidebar>
+        <RadzenBody>
+            <div class="rz-p-4">
+                Body
+            </div>
+        </RadzenBody>
+    </RadzenLayout>
 }
 
 @code {
+
+    bool sidebar1Expanded = true;
+    bool multiple = true;
+
+    void OnParentClicked(MenuItemEventArgs args)
+    {
+    }
+
+    void OnChildClicked(MenuItemEventArgs args)
+    {
+    }
 
     bool _drawerOpen = true;
     void DrawerToggle()

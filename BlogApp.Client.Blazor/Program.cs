@@ -5,12 +5,12 @@ using BlogApp.Client.Blazor.Services.Category;
 using BlogApp.Client.Blazor.SharedKernel.Services;
 using BlogApp.Client.Blazor.States.Auth;
 using Microsoft.AspNetCore.Components.Authorization;
-using MudBlazor.Services;
+using Radzen;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddBlazoredLocalStorage();
-builder.Services.AddMudServices();
+builder.Services.AddRadzenComponents();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

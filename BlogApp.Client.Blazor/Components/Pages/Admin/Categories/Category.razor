@@ -5,18 +5,65 @@
 
 @inject ICategoryService categoryService
 
-
 @rendermode InteractiveServer
 
+@* <RadzenDataGrid style="height: 335px" @ref="grid" IsLoading=@isLoading Count="@count" Data="@categories" LoadData="@LoadData" AllowSorting="true" AllowFiltering="true" AllowPaging="true" PageSize="5" PagerHorizontalAlign="HorizontalAlign.Center" ColumnWidth="200px">
+    <Columns>
+        <RadzenDataGridColumn Property="@nameof(CategoryModel.Id)" Filterable="false" Title="ID" Frozen="true" TextAlign="TextAlign.Left" />
+        <RadzenDataGridColumn Property="@nameof(CategoryModel.Name)" Title="Adı"  TextAlign="TextAlign.Left" />
+    </Columns>
+</RadzenDataGrid> *@
+
+<RadzenDataGrid Style="height:324px" @ref="grid" IsLoading=@isLoading Data="@categories" LoadData="@LoadData" AllowSorting="true" AllowFiltering="true">
+    <Columns>
+        <RadzenDataGridColumn Property="@nameof(CategoryModel.Id)" Filterable="false" Title="ID" Frozen="false" TextAlign="TextAlign.Left" />
+        <RadzenDataGridColumn Property="@nameof(CategoryModel.Name)" Title="Notes" Width="300px" />
+    </Columns>
+    <FooterTemplate>
+        <RadzenPager ShowPagingSummary="true" PagingSummaryFormat="@pagingSummaryFormat" HorizontalAlign="HorizontalAlign.Center" Count="count" PageSize="@pageSize" PageNumbersCount="5" PageChanged="@PageChanged" />
+    </FooterTemplate>
+</RadzenDataGrid>
 
 
 @code {
 
+    RadzenDataGrid<CategoryModel> grid;
+    int count;
+    bool isLoading = false;
+    PaginationListResponse<CategoryModel> paginationListResponse;
 
-    // protected override async Task OnInitializedAsync()
-    // {
-    //     var req = new PageRequest { PageIndex = 0, PageSize = 10 };
-    //      await categoryService.GetCategoryPaginationListAsync(req);
-    // }
+    string pagingSummaryFormat = "Sayfa {0} / {1} görüntüleniyor (toplam {2} kayıt)";
+    int pageSize = 5;
+    IEnumerable<CategoryModel> categories;
+
+    // var req = new PageRequest { PageIndex = 0, PageSize = 5 };
+    // await categoryService.GetCategoryPaginationListAsync(req);
+    async Task PageChanged(PagerEventArgs args)
+    {
+        var req = new PageRequest { PageIndex = args.PageIndex, PageSize = args.Top };
+        paginationListResponse = await categoryService.GetCategoryPaginationListAsync(req);
+        categories = paginationListResponse.Items;
+    }
+
+    async Task LoadData(LoadDataArgs args)
+    {
+        isLoading = true;
+
+        await Task.Yield();
+
+        var req = new PageRequest { PageIndex = args.Skip.Value, PageSize = pageSize };
+        paginationListResponse = await categoryService.GetCategoryPaginationListAsync(req);
+
+        count = paginationListResponse.Count;
+
+        // Perform paging via Skip and Take.
+        categories = paginationListResponse.Items.ToList();
+
+        isLoading = false;
+    }
+
+
+
+
 
 }

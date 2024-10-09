@@ -19,7 +19,7 @@
 
                 <AuthorizeView>
                     <Authorized>
-                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem"> 
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
                             <RadzenLabel Text="Hoşgeldiniz," /> <div>@user.Identity?.Name!</div>
                             <RadzenLink @onclick="Logout">Çıkış Yap</RadzenLink>
                             <RadzenAppearanceToggle />
@@ -29,41 +29,27 @@
             </RadzenStack>
         </RadzenHeader>
         <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
-            <RadzenPanelMenu Click="OnParentClicked" Multiple="@multiple">
-                <RadzenPanelMenuItem Text="General" Icon="home">
-                    <RadzenPanelMenuItem Text="Buttons" Path="buttons" Icon="account_circle"></RadzenPanelMenuItem>
-                    <RadzenPanelMenuItem Text="Menu" Path="menu" Icon="line_weight"></RadzenPanelMenuItem>
-                    <RadzenPanelMenuItem Text="FileInput" Path="fileinput" Icon="attach_file"></RadzenPanelMenuItem>
-                    <RadzenPanelMenuItem Text="Dialog" Path="dialog" Icon="perm_media"></RadzenPanelMenuItem>
-                    <RadzenPanelMenuItem Text="Notification" Path="notification" Icon="announcement"></RadzenPanelMenuItem>
+            <RadzenPanelMenu Click="OnParentClicked" Multiple="true">
+                <RadzenPanelMenuItem Text="Dashboard" Path="/Admin" Icon="dashboard"></RadzenPanelMenuItem>
+                <RadzenPanelMenuItem Text="Kategori Yönetimi" Path="/Admin/Categories" Click="@(()=> selectedMenu = !selectedMenu)" Selected="@selectedMenu" Icon="category"></RadzenPanelMenuItem>
+
+                <RadzenPanelMenuItem Text="Makaleler" Icon="home">
+                    <RadzenPanelMenuItem Text="Makale Listesi" Path="/Admin/Articles" Icon="account_circle"></RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="Makale Ekle" Path="/Admin/Articles/Add" Icon="line_weight"></RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="Taslaklar" Path="/Admin/Articles/Drafts" Icon="attach_file"></RadzenPanelMenuItem>
                 </RadzenPanelMenuItem>
-                <RadzenPanelMenuItem Text="Inputs" Icon="payment">
-                    <RadzenPanelMenuItem Text="CheckBox" Path="checkbox" Icon="check_circle"></RadzenPanelMenuItem>
-                    <RadzenPanelMenuItem Text="TextBox" Path="textbox" Icon="input"></RadzenPanelMenuItem>
-                    <RadzenPanelMenuItem Text="TextArea" Path="textarea" Icon="description"></RadzenPanelMenuItem>
-                    <RadzenPanelMenuItem Text="Password" Path="password" Icon="payment"></RadzenPanelMenuItem>
-                    <RadzenPanelMenuItem Text="Numeric" Path="numeric" Icon="aspect_ratio"></RadzenPanelMenuItem>
-                    <RadzenPanelMenuItem Text="DatePicker" Path="datepicker" Icon="date_range"></RadzenPanelMenuItem>
+
+                <RadzenPanelMenuItem Text="Kullanıcı Yönetimi" Icon="payment">
+                    <RadzenPanelMenuItem Text="Kullanıcı Listesi" Path="/Admin/Users" Icon="check_circle"></RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="Kullanıcı Ekle" Path="/Admin/Users/Add" Icon="input"></RadzenPanelMenuItem>
+                    <RadzenPanelMenuItem Text="Kullanıcı Rolleri" Path="/Admin/Users/Roles" Icon="description"></RadzenPanelMenuItem>
                 </RadzenPanelMenuItem>
-                <RadzenPanelMenuItem Text="Data" Icon="save">
-                    <RadzenPanelMenuItem Text="DataGrid" Path="datagrid" Icon="grid_on"></RadzenPanelMenuItem>
-                    <RadzenPanelMenuItem Text="DataList" Path="datalist" Icon="list"></RadzenPanelMenuItem>
-                    <RadzenPanelMenuItem Text="DropDown" Path="dropdown" Icon="dns"></RadzenPanelMenuItem>
-                    <RadzenPanelMenuItem Text="DropDownDataGrid" Path="dropdown-datagrid" Icon="receipt"></RadzenPanelMenuItem>
-                    <RadzenPanelMenuItem Text="ListBox" Path="listbox" Icon="view_list"></RadzenPanelMenuItem>
-                    <RadzenPanelMenuItem Text="TemplateForm" Path="templateform" Icon="line_style"></RadzenPanelMenuItem>
-                </RadzenPanelMenuItem>
-                <RadzenPanelMenuItem Text="Containers" Icon="account_box">
-                    <RadzenPanelMenuItem Text="Tabs" Path="tabs" Icon="tab"></RadzenPanelMenuItem>
-                    <RadzenPanelMenuItem Text="Panel" Path="panel" Icon="content_paste"></RadzenPanelMenuItem>
-                    <RadzenPanelMenuItem Text="Fieldset" Path="fieldset" Icon="account_balance_wallet"></RadzenPanelMenuItem>
-                    <RadzenPanelMenuItem Text="Card" Path="card" Icon="line_style"></RadzenPanelMenuItem>
-                </RadzenPanelMenuItem>
+
             </RadzenPanelMenu>
         </RadzenSidebar>
         <RadzenBody>
             <div class="rz-p-4">
-                Body
+                @Body
             </div>
         </RadzenBody>
     </RadzenLayout>
@@ -72,7 +58,7 @@
 @code {
 
     bool sidebar1Expanded = true;
-    bool multiple = true;
+    bool selectedMenu = false;
 
     void OnParentClicked(MenuItemEventArgs args)
     {

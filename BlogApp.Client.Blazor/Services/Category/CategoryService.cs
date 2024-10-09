@@ -9,7 +9,7 @@ public class CategoryService(IHttpClientService httpClientService) : ICategorySe
     public async Task<PaginationListResponse<CategoryModel>> GetCategoryPaginationListAsync(PageRequest pageRequest)
     {
         var response = await httpClientService
-            .GetAsync<PaginationListResponse<CategoryModel>>($"category?pageIndex{pageRequest.PageIndex}&pageSize={pageRequest.PageSize}");
+            .GetAsync<PaginationListResponse<CategoryModel>>($"category?pageIndex={pageRequest.PageIndex}&pageSize={pageRequest.PageSize}");
 
         return response;
     }

@@ -1,4 +1,3 @@
-using Blazored.LocalStorage;
 using BlogApp.Client.Blazor.Components;
 using BlogApp.Client.Blazor.Services.Auth;
 using BlogApp.Client.Blazor.Services.Category;
@@ -9,7 +8,6 @@ using Radzen;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddRadzenComponents();
 
 // Add services to the container.

@@ -5,5 +5,5 @@ namespace BlogApp.Client.Blazor.Services.Category;
 
 public interface ICategoryService
 {
-    Task<PaginationListResponse<CategoryModel>> GetCategoryPaginationListAsync(PageRequest pageRequest);
+    Task<PaginationListResponse<CategoryModel>> GetCategoryPaginationListAsync(DataGridRequest dataGridRequest);
 }

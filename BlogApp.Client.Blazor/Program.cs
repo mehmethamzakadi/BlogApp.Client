@@ -3,12 +3,20 @@ using BlogApp.Client.Blazor.Services.Auth;
 using BlogApp.Client.Blazor.Services.Category;
 using BlogApp.Client.Blazor.SharedKernel.Services;
 using BlogApp.Client.Blazor.States.Auth;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.DependencyInjection;
 using Radzen;
+using Radzen.Blazor;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRadzenComponents();
+
+var activator = new RadzenComponentActivator();
+// Override any RadzenDataGrid with MyDataGrid which has some property defaults set.
+activator.Override(typeof(RadzenDataGrid<>), typeof(CustomRadzenDataGrid<>));
+builder.Services.AddSingleton<IComponentActivator>(activator);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

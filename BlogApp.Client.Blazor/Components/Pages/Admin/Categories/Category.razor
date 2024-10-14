@@ -4,25 +4,23 @@
 @using BlogApp.Client.Blazor.SharedKernel.Models
 
 @inject ICategoryService categoryService
-
 @rendermode InteractiveServer
-
-@* <RadzenDataGrid style="height: 335px" @ref="grid" IsLoading=@isLoading Count="@count" Data="@categories" LoadData="@LoadData" AllowSorting="true" AllowFiltering="true" AllowPaging="true" PageSize="5" PagerHorizontalAlign="HorizontalAlign.Center" ColumnWidth="200px">
-    <Columns>
-        <RadzenDataGridColumn Property="@nameof(CategoryModel.Id)" Filterable="false" Title="ID" Frozen="true" TextAlign="TextAlign.Left" />
-        <RadzenDataGridColumn Property="@nameof(CategoryModel.Name)" Title="Adı"  TextAlign="TextAlign.Left" />
-    </Columns>
-</RadzenDataGrid> *@
 
 <RadzenDataGrid @ref="grid"
                 IsLoading=@isLoading
                 Data="@categories"
                 LoadData="@LoadData"
                 AllowSorting="true"
-                AllowFiltering="true">
+                AllowFiltering="true"
+                FilterMode="FilterMode.Simple"
+                FilterCaseSensitivity="@FilterCaseSensitivity.CaseInsensitive"
+                LogicalFilterOperator="@LogicalFilterOperator.And"
+                PagingSummaryFormat="@pagingSummaryFormat">
+    <HeaderTemplate>
+        <RadzenButton Text="Yeni Ekle" Click=@(()=> {}) />
+    </HeaderTemplate>
     <Columns>
-        <RadzenDataGridColumn Property="@nameof(CategoryModel.Id)" Title="ID" Frozen="false" TextAlign="TextAlign.Left" />
-        <RadzenDataGridColumn Property="@nameof(CategoryModel.Name)" Title="Ad" />
+        <RadzenDataGridColumn Property="@nameof(CategoryModel.Name)" Title="Kategori Adı" />
     </Columns>
     <FooterTemplate>
         <RadzenPager ShowPagingSummary="true" PagingSummaryFormat="@pagingSummaryFormat" HorizontalAlign="HorizontalAlign.Center" Count="count" PageSize="10" PageNumbersCount="5" PageChanged="@PageChanged" />
@@ -31,14 +29,15 @@
 
 
 @code {
-
+    PaginationListResponse<CategoryModel> paginationListResponse;
     RadzenDataGrid<CategoryModel> grid;
+    IEnumerable<CategoryModel> categories;
+
     int count;
     bool isLoading = false;
-    PaginationListResponse<CategoryModel> paginationListResponse;
 
     string pagingSummaryFormat = "Sayfa {0} / {1} görüntüleniyor (toplam {2} kayıt)";
-    IEnumerable<CategoryModel> categories;
+
 
     DataGridRequest dataGridRequest = new DataGridRequest
         {
@@ -54,7 +53,6 @@
             }
         };
 
-    
 
 
     async Task PageChanged(PagerEventArgs args)
@@ -91,7 +89,7 @@
                     AddFirsFilter(new Filter
                         {
                             Field = argFilt.Property,
-                            Value = argFilt.FilterValue.ToString(),
+                            Value = (argFilt.FilterValue.ToString()).ToLower(),
                             Operator = argFilt.FilterOperator.GetDisplayDescription(),
                             Logic = argFilt.LogicalFilterOperator.GetDisplayDescription(),
                             Filters = new List<Filter>()
@@ -104,7 +102,7 @@
                         baseFilter.Filters.Add(new Filter
                             {
                                 Field = argFilt.Property,
-                                Value = argFilt.FilterValue.ToString(),
+                                Value = (argFilt.FilterValue.ToString()).ToLower(),
                                 Operator = argFilt.FilterOperator.GetDisplayDescription(),
                                 Logic = argFilt.LogicalFilterOperator.GetDisplayDescription(),
                                 Filters = new List<Filter>()
@@ -144,8 +142,6 @@
 
         isLoading = false;
     }
-
-
 
 
 

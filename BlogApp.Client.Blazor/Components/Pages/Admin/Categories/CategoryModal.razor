@@ -1,0 +1,39 @@
+@using BlogApp.Client.Blazor.Models
+
+<RadzenTemplateForm TItem="CategoryModel" Data=@model Submit=@OnSubmit>
+    <RadzenDialog/>
+    <div class="row">
+        <div class="col-md-12">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Class="rz-mb-6">
+                <RadzenText TextStyle="TextStyle.H5">@(model.Id == 0 ? "Yeni Kategori" : "Kategori Düzenle")</RadzenText>
+            </RadzenStack>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <RadzenStack Gap="1rem">
+                <RadzenFormField Text="Kategori Adı" Variant="Variant.Filled">
+                    <RadzenTextBox @bind-Value=@model.Name Name="Name" />
+                    <RadzenRequiredValidator Component="Name" Text="Kategori adı zorunludur." Popup=true/>
+                </RadzenFormField>
+            </RadzenStack>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <RadzenButton ButtonType="ButtonType.Submit" Text="Kaydet" ButtonStyle="ButtonStyle.Primary" Class="me-2"/>
+            <RadzenButton Text="İptal" Click=@OnCancel ButtonStyle="ButtonStyle.Light"/>
+        </div>
+    </div>
+</RadzenTemplateForm>
+
+@code {
+    [Parameter]
+    public CategoryModel model { get; set; } = new();
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    [Parameter]
+    public EventCallback<CategoryModel> OnSubmit { get; set; }
+}

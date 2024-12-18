@@ -1,148 +1,229 @@
-﻿@page "/Admin/Categories";
+@page "/Admin/Categories";
 @using BlogApp.Client.Blazor.Models
-@using BlogApp.Client.Blazor.Services.Category
+@using BlogApp.Client.Blazor.Services.Common
+@using BlogApp.Client.Blazor.Services.DataGrid
 @using BlogApp.Client.Blazor.SharedKernel.Models
+@using BlogApp.Client.Blazor.States.Category
+@using Microsoft.AspNetCore.Authorization
+@implements IDisposable
 
-@inject ICategoryService categoryService
+@attribute [Authorize(Roles = "Admin")]
+@inject CategoryState State
+@inject NotificationService NotificationService
+@inject IExceptionHandlerService ExceptionHandler
+@inject DialogService DialogService
+@inject IFilterService FilterService
 @rendermode InteractiveServer
 
-<RadzenDataGrid @ref="grid"
-                IsLoading=@isLoading
-                Data="@categories"
-                LoadData="@LoadData"
-                AllowSorting="true"
-                AllowFiltering="true"
-                FilterMode="FilterMode.Simple"
-                FilterCaseSensitivity="@FilterCaseSensitivity.CaseInsensitive"
-                LogicalFilterOperator="@LogicalFilterOperator.And"
-                PagingSummaryFormat="@pagingSummaryFormat">
-    <HeaderTemplate>
-        <RadzenButton Text="Yeni Ekle" Click=@(()=> {}) />
-    </HeaderTemplate>
-    <Columns>
-        <RadzenDataGridColumn Property="@nameof(CategoryModel.Name)" Title="Kategori Adı" />
-    </Columns>
-    <FooterTemplate>
-        <RadzenPager ShowPagingSummary="true" PagingSummaryFormat="@pagingSummaryFormat" HorizontalAlign="HorizontalAlign.Center" Count="count" PageSize="10" PageNumbersCount="5" PageChanged="@PageChanged" />
-    </FooterTemplate>
-</RadzenDataGrid>
+<CascadingValue Value="this">
+    <ErrorBoundary @ref="errorBoundary">
+        <ChildContent>
+            <RadzenTemplateForm Data="@State.CurrentCategory" Submit="@(async (CategoryModel model) => await Submit())">
+                <RadzenColumn Size="12" SizeMD="6">
+                    <RadzenStack>
+                        <RadzenFieldset Text="@(State.CurrentCategory.Id == 0 ? "Kategori Ekle" : "Kategori Düzenle")">
+                            <RadzenStack Gap="1rem">
+                                <RadzenRow AlignItems="AlignItems.Center">
+                                    <RadzenColumn Size="12" SizeMD="4">
+                                        <RadzenLabel Text="Adı" Component="Name" />
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="12" SizeMD="8">
+                                        <RadzenTextBox Style="width: 100%;" 
+                                                     Name="Name" 
+                                                     @bind-Value="@State.CurrentCategory.Name"
+                                                     Disabled="@State.IsSubmitting" />
+                                        <RadzenRequiredValidator Component="Name" 
+                                                               Text="Kategori adı zorunludur." 
+                                                               Style="position: absolute" />
+                                        <RadzenLengthValidator Component="Name" 
+                                                             Min="2" 
+                                                             Max="50"
+                                                             Text="Kategori adı 2-50 karakter arasında olmalıdır." 
+                                                             Style="position: absolute" />
+                                    </RadzenColumn>
+                                </RadzenRow>
+                            </RadzenStack>
+                        </RadzenFieldset>
+                    </RadzenStack>
+                </RadzenColumn>
+                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" class="rz-mt-8 rz-mb-4">
+                    <RadzenButton ButtonType="ButtonType.Submit" 
+                                Size="ButtonSize.Large" 
+                                Icon="save" 
+                                Text="Kaydet"
+                                Disabled="@State.IsSubmitting"
+                                IsBusy="@State.IsSubmitting"
+                                BusyText="Kaydediliyor..." />
+                    <RadzenButton ButtonStyle="ButtonStyle.Light" 
+                                Variant="Variant.Flat" 
+                                Size="ButtonSize.Large" 
+                                Icon="cancel" 
+                                Text="İptal"
+                                Disabled="@State.IsSubmitting"
+                                Click="@Cancel" />
+                </RadzenStack>
+            </RadzenTemplateForm>
 
+            <RadzenDataGrid @ref="grid"
+                           IsLoading="@State.IsLoading"
+                           Data="@State.Categories"
+                           Count="@State.TotalCount"
+                           LoadData="@LoadData"
+                           AllowSorting="true"
+                           AllowFiltering="true"
+                           FilterMode="FilterMode.Simple"
+                           FilterCaseSensitivity="@FilterCaseSensitivity.CaseInsensitive"
+                           LogicalFilterOperator="@LogicalFilterOperator.And"
+                           PagingSummaryFormat="@pagingSummaryFormat"
+                           PageSize="10"
+                           PageSizeOptions="@(new int[] { 10, 20, 30 })"
+                           ShowPagingSummary="true"
+                           AllowPaging="true">
+                <Columns>
+                    <RadzenDataGridColumn Property="@nameof(CategoryModel.Name)" Title="Kategori Adı" />
+                    <RadzenDataGridColumn TItem="CategoryModel" Context="data" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px">
+                        <Template Context="category">
+                            <RadzenButton Icon="edit" 
+                                        ButtonStyle="ButtonStyle.Info" 
+                                        Variant="Variant.Flat" 
+                                        Size="ButtonSize.Medium" 
+                                        Click="@(() => EditCategory(category))"
+                                        Disabled="@State.IsSubmitting" />
+                            <RadzenButton Icon="delete" 
+                                        ButtonStyle="ButtonStyle.Danger" 
+                                        Variant="Variant.Flat" 
+                                        Size="ButtonSize.Medium" 
+                                        Click="@(async () => await DeleteCategory(category))"
+                                        Disabled="@State.IsSubmitting"
+                                        class="ms-1" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </ChildContent>
+        <ErrorContent Context="ex">
+            <RadzenAlert AllowClose="false" AlertStyle="AlertStyle.Danger" ShowIcon="true">
+                Bir hata oluştu: @ex.Message
+            </RadzenAlert>
+        </ErrorContent>
+    </ErrorBoundary>
+</CascadingValue>
 
 @code {
-    PaginationListResponse<CategoryModel> paginationListResponse;
-    RadzenDataGrid<CategoryModel> grid;
-    IEnumerable<CategoryModel> categories;
+    private ErrorBoundary errorBoundary;
+    private RadzenDataGrid<CategoryModel> grid;
+    private readonly string pagingSummaryFormat = "Sayfa {0} / {1} görüntüleniyor (toplam {2} kayıt)";
 
-    int count;
-    bool isLoading = false;
-
-    string pagingSummaryFormat = "Sayfa {0} / {1} görüntüleniyor (toplam {2} kayıt)";
-
-
-    DataGridRequest dataGridRequest = new DataGridRequest
-        {
-            PaginatedRequest = new PaginatedRequest
-            {
-                PageIndex = 0,
-                PageSize = 10,
-            },
-            DynamicQuery = new DynamicQuery
-            {
-                Filter = null,
-                Sort = null
-            }
-        };
-
-
-
-    async Task PageChanged(PagerEventArgs args)
+    protected override void OnInitialized()
     {
-        dataGridRequest.PaginatedRequest.PageIndex = args.PageIndex;
-        dataGridRequest.PaginatedRequest.PageSize = args.Top;
-
-        paginationListResponse = await categoryService.GetCategoryPaginationListAsync(dataGridRequest);
-        categories = paginationListResponse.Items;
+        State.OnStateChanged += StateHasChanged;
     }
 
-    async Task LoadData(LoadDataArgs args)
+    public void Dispose()
     {
-        isLoading = true;
+        State.OnStateChanged -= StateHasChanged;
+        GC.SuppressFinalize(this);
+    }
 
-        await Task.Yield();
+    protected override void OnParametersSet()
+    {
+        errorBoundary?.Recover();
+    }
 
-        Filter baseFilter = new Filter()
+    private async Task Submit()
+    {
+        if (!ValidateModel(State.CurrentCategory))
+        {
+            return;
+        }
+
+        try
+        {
+            await State.SaveCategoryAsync();
+            
+            string message = State.CurrentCategory.Id == 0 
+                ? "Kategori başarıyla eklendi." 
+                : "Kategori başarıyla güncellendi.";
+                
+             NotificationService.Notify(NotificationSeverity.Success, "Başarılı", message);
+            await grid.Reload();
+            State.ResetCurrentCategory();
+        }
+        catch (Exception ex)
+        {
+            await ExceptionHandler.HandleExceptionAsync(ex, NotificationService);
+        }
+    }
+
+    private void EditCategory(CategoryModel category)
+    {
+        if (!State.IsSubmitting)
+        {
+            State.SetCurrentCategory(category);
+        }
+    }
+
+    private async Task DeleteCategory(CategoryModel category)
+    {
+        try
+        {
+            var confirmOptions = new ConfirmOptions
             {
-                Filters = new List<Filter>()
+                OkButtonText = "Evet",
+                CancelButtonText = "Hayır"
             };
 
-        void AddFirsFilter(Filter filter)
-        {
-            baseFilter = filter;
-        }
-
-        if (args.Filters.Any())
-        {
-            foreach (var argFilt in args.Filters)
+            if (await DialogService.Confirm(
+                    "Bu kategoriyi silmek istediğinize emin misiniz?",
+                    "Kategori Silme",
+                    confirmOptions) == true)
             {
-                if (string.IsNullOrEmpty(baseFilter.Value))
-                {
-                    AddFirsFilter(new Filter
-                        {
-                            Field = argFilt.Property,
-                            Value = (argFilt.FilterValue.ToString()).ToLower(),
-                            Operator = argFilt.FilterOperator.GetDisplayDescription(),
-                            Logic = argFilt.LogicalFilterOperator.GetDisplayDescription(),
-                            Filters = new List<Filter>()
-                        });
-                }
-                else
-                {
-                    if (!(baseFilter.Field == argFilt.Property) && !baseFilter.Filters.Any(x => x.Field == argFilt.Property))
-                    {
-                        baseFilter.Filters.Add(new Filter
-                            {
-                                Field = argFilt.Property,
-                                Value = (argFilt.FilterValue.ToString()).ToLower(),
-                                Operator = argFilt.FilterOperator.GetDisplayDescription(),
-                                Logic = argFilt.LogicalFilterOperator.GetDisplayDescription(),
-                                Filters = new List<Filter>()
-                            });
-                    }
-                }
+                await State.DeleteCategoryAsync(category.Id);
+                 NotificationService.Notify(NotificationSeverity.Success, "Başarılı", "Kategori başarıyla silindi.");
+                await grid.Reload();
             }
         }
-        else
+        catch (Exception ex)
         {
-            baseFilter = new Filter()
-                {
-                    Filters = new List<Filter>()
-                };
+            await ExceptionHandler.HandleExceptionAsync(ex, NotificationService);
         }
-
-
-        var sorts = new List<Sort>();
-        foreach (var sort in args.Sorts)
-        {
-            sorts.Add(new Sort
-                {
-                    Field = sort.Property,
-                    Dir = sort.SortOrder.Value.ToString()
-                });
-        }
-
-        dataGridRequest.DynamicQuery.Filter = baseFilter.Value != null ? baseFilter : null;
-        dataGridRequest.DynamicQuery.Sort = sorts.Count > 0 ? sorts : null;
-
-        paginationListResponse = await categoryService.GetCategoryPaginationListAsync(dataGridRequest);
-
-        count = paginationListResponse.Count;
-
-        // Perform paging via Skip and Take.
-        categories = paginationListResponse.Items.ToList();
-
-        isLoading = false;
     }
 
+    private bool ValidateModel(CategoryModel model)
+    {
+        if (string.IsNullOrWhiteSpace(model.Name))
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Hata", "Kategori adı zorunludur.");
+            return false;
+        }
 
+        if (model.Name.Length < 2 || model.Name.Length > 50)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Hata", "Kategori adı 2-50 karakter arasında olmalıdır.");
+            return false;
+        }
 
+        return true;
+    }
+
+    private void Cancel()
+    {
+        if (!State.IsSubmitting)
+        {
+            State.ResetCurrentCategory();
+        }
+    }
+
+    private async Task LoadData(LoadDataArgs args)
+    {
+        try
+        {
+            var request = FilterService.CreateDataGridRequest(args);
+            await State.LoadCategoriesAsync(request);
+        }
+        catch (Exception ex)
+        {
+            await ExceptionHandler.HandleExceptionAsync(ex, NotificationService);
+        }
+    }
 }

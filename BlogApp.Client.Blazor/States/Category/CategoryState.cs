@@ -4,17 +4,14 @@ using BlogApp.Client.Blazor.SharedKernel.Models;
 
 namespace BlogApp.Client.Blazor.States.Category;
 
-public class CategoryState
+public class CategoryState : BaseState
 {
     private readonly ICategoryService _categoryService;
-    
+    public Result<CategoryModel> ResultCategory { get; private set; } = new();
+
     public CategoryModel CurrentCategory { get; private set; } = new();
     public IEnumerable<CategoryModel> Categories { get; private set; } = Array.Empty<CategoryModel>();
     public int TotalCount { get; private set; }
-    public bool IsLoading { get; private set; }
-    public bool IsSubmitting { get; private set; }
-    
-    public event Action OnStateChanged;
 
     public CategoryState(ICategoryService categoryService)
     {
@@ -39,60 +36,34 @@ public class CategoryState
 
     public async Task LoadCategoriesAsync(DataGridRequest request)
     {
-        try
+        await ExecuteWithLoadingAsync(async () =>
         {
-            IsLoading = true;
-            NotifyStateChanged();
-
             var response = await _categoryService.GetCategoryPaginationListAsync(request);
             Categories = response.Items;
             TotalCount = response.Count;
-        }
-        finally
-        {
-            IsLoading = false;
-            NotifyStateChanged();
-        }
+        });
     }
 
     public async Task SaveCategoryAsync()
     {
-        try
+        await ExecuteWithSubmittingAsync(async () =>
         {
-            IsSubmitting = true;
-            NotifyStateChanged();
-
             if (CurrentCategory.Id == 0)
             {
-                await _categoryService.CreateCategoryAsync(CurrentCategory);
+                ResultCategory = await _categoryService.CreateCategoryAsync(CurrentCategory);
             }
             else
             {
-                await _categoryService.UpdateCategoryAsync(CurrentCategory);
+                ResultCategory = await _categoryService.UpdateCategoryAsync(CurrentCategory);
             }
-        }
-        finally
-        {
-            IsSubmitting = false;
-            NotifyStateChanged();
-        }
+        });
     }
 
     public async Task DeleteCategoryAsync(int categoryId)
     {
-        try
+        await ExecuteWithSubmittingAsync(async () =>
         {
-            IsSubmitting = true;
-            NotifyStateChanged();
-
-            await _categoryService.DeleteCategoryAsync(categoryId);
-        }
-        finally
-        {
-            IsSubmitting = false;
-            NotifyStateChanged();
-        }
+            ResultCategory = await _categoryService.DeleteCategoryAsync(categoryId);
+        });
     }
-
-    private void NotifyStateChanged() => OnStateChanged?.Invoke();
 }

@@ -6,7 +6,7 @@ namespace BlogApp.Client.Blazor.Services.Category;
 public interface ICategoryService
 {
     Task<PaginationListResponse<CategoryModel>> GetCategoryPaginationListAsync(DataGridRequest dataGridRequest);
-    Task<CategoryModel> CreateCategoryAsync(CategoryModel category);
-    Task<CategoryModel> UpdateCategoryAsync(CategoryModel category);
-    Task<CategoryModel> DeleteCategoryAsync(int categoryId);
+    Task<Result<CategoryModel>> CreateCategoryAsync(CategoryModel category);
+    Task<Result<CategoryModel>> UpdateCategoryAsync(CategoryModel category);
+    Task<Result<CategoryModel>> DeleteCategoryAsync(int categoryId);
 }

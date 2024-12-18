@@ -16,28 +16,28 @@ public class CategoryService(IHttpClientService httpClientService) : ICategorySe
         return response;
     }
 
-    public async Task<CategoryModel> CreateCategoryAsync(CategoryModel category)
+    public async Task<Result<CategoryModel>> CreateCategoryAsync(CategoryModel category)
     {
         var stringContent = JsonUtils.GenerateStringContent(JsonUtils.SerializeObj(category));
         var response = await httpClientService
-            .PostAsync<CategoryModel>($"category/Create", stringContent);
+            .PostAsync<Result<CategoryModel>>($"category/Create", stringContent);
 
         return response;
     }
 
-    public async Task<CategoryModel> UpdateCategoryAsync(CategoryModel category)
+    public async Task<Result<CategoryModel>> UpdateCategoryAsync(CategoryModel category)
     {
         var stringContent = JsonUtils.GenerateStringContent(JsonUtils.SerializeObj(category));
         var response = await httpClientService
-            .PutAsync<CategoryModel>($"category/Update", stringContent);
+            .PutAsync<Result<CategoryModel>>($"category/Update", stringContent);
 
         return response;
     }
 
-    public async Task<CategoryModel> DeleteCategoryAsync(int categoryId)
+    public async Task<Result<CategoryModel>> DeleteCategoryAsync(int categoryId)
     {
         var response = await httpClientService
-            .DeleteAsync<CategoryModel>($"category/Delete/{categoryId}");
+            .DeleteAsync<Result<CategoryModel>>($"category/Delete/{categoryId}");
 
         return response;
     }

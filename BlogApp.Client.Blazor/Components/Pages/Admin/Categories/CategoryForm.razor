@@ -9,40 +9,47 @@
 
 <EditForm Model="@State.CurrentCategory" OnValidSubmit="@Submit">
     <DataAnnotationsValidator />
-    <RadzenColumn Size="12" SizeMD="6">
-        <RadzenStack>
-            <RadzenFieldset Text="@(State.CurrentCategory.Id == 0 ? "Kategori Ekle" : "Kategori Düzenle")">
-                <RadzenStack Gap="1rem">
-                    <RadzenRow AlignItems="AlignItems.Center">
-                        <RadzenColumn Size="12" SizeMD="4">
-                            <RadzenLabel Text="Adı" Component="Name" />
-                        </RadzenColumn>
-                        <RadzenColumn Size="12" SizeMD="8">
-                            <RadzenTextBox Style="width: 100%;"
-                                          Name="Name"
-                                          @bind-Value="@State.CurrentCategory.Name"
-                                          Disabled="@State.IsSubmitting" />
-                            <ValidationMessage For="@(() => State.CurrentCategory.Name)" 
-                                            class="rz-text-danger d-block mt-1"/>
-                        </RadzenColumn>
-                    </RadzenRow>
-                </RadzenStack>
-            </RadzenFieldset>
-        </RadzenStack>
-    </RadzenColumn>
-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Gap="1rem" class="rz-mt-8 rz-mb-4">
+    <RadzenRow class="rz-mx-auto" Style="max-width: 800px;">
+        <RadzenColumn Size="12">
+            <RadzenStack>
+                <RadzenFieldset Text="@(State.CurrentCategory.Id == 0 ? "Kategori Ekle" : "Kategori Düzenle")">
+                    <RadzenStack Gap="1.5rem">
+                        <RadzenRow AlignItems="AlignItems.Center">
+                            <RadzenColumn Size="12" SizeSM="4" class="mb-2 mb-sm-0">
+                                <RadzenLabel Text="Adı" Component="Name" Style="font-weight: 500;" />
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeSM="8">
+                                <RadzenTextBox Style="width: 100%;"
+                                              Name="Name"
+                                              @bind-Value="@State.CurrentCategory.Name"
+                                              Disabled="@State.IsSubmitting" />
+                                <ValidationMessage For="@(() => State.CurrentCategory.Name)" 
+                                                class="rz-text-danger d-block mt-1"/>
+                            </RadzenColumn>
+                        </RadzenRow>
+                    </RadzenStack>
+                </RadzenFieldset>
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenStack Orientation="@(Orientation.Horizontal)" 
+                 JustifyContent="JustifyContent.Center" 
+                 Gap="1rem" 
+                 class="rz-mt-6 rz-mb-4 rz-p-2">
         <RadzenButton ButtonType="ButtonType.Submit"
-                     Size="ButtonSize.Large"
+                     Size="ButtonSize.Medium"
                      Icon="save"
                      Text="Kaydet"
                      Disabled="@State.IsSubmitting"
                      IsBusy="@State.IsSubmitting"
+                     Style="min-width: 120px;"
                      BusyText="Kaydediliyor..." />
         <RadzenButton ButtonStyle="ButtonStyle.Light"
                      Variant="Variant.Flat"
-                     Size="ButtonSize.Large"
+                     Size="ButtonSize.Medium"
                      Icon="cancel"
                      Text="İptal"
+                     Style="min-width: 120px;"
                      Disabled="@State.IsSubmitting"
                      Click="@OnCancel" />
     </RadzenStack>
@@ -61,11 +68,19 @@
         {
             await State.SaveCategoryAsync();
 
-            string message = State.CurrentCategory.Id == 0
-                ? "Kategori başarıyla eklendi."
-                : "Kategori başarıyla güncellendi.";
+            // string message = State.CurrentCategory.Id == 0
+            //     ? "Kategori başarıyla eklendi."
+            //     : "Kategori başarıyla güncellendi.";
 
-            NotificationService.Notify(NotificationSeverity.Success, "Başarılı", message);
+            if (State.ResultCategory.Success)
+            {
+                NotificationService.Notify(NotificationSeverity.Success, "Başarılı", State.ResultCategory.Message);
+            }
+            else {
+                NotificationService.Notify(NotificationSeverity.Error, "Hata", State.ResultCategory.Message);
+            }
+
+            // NotificationService.Notify(NotificationSeverity.Success, "Başarılı", message);
             State.ResetCurrentCategory();
             await OnSaved.InvokeAsync();
         }

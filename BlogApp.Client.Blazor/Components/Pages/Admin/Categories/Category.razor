@@ -4,6 +4,7 @@
 @using BlogApp.Client.Blazor.Services.DataGrid
 @using BlogApp.Client.Blazor.SharedKernel.Models
 @using BlogApp.Client.Blazor.States.Category
+@using BlogApp.Client.Blazor.Helpers
 @using Microsoft.AspNetCore.Authorization
 @implements IDisposable
 
@@ -41,7 +42,7 @@
                             ShowPagingSummary="true"
                             AllowPaging="true">
                 <Columns>
-                    <RadzenDataGridColumn Property="@nameof(CategoryModel.Name)" Title="Kategori AdÄ±" />
+                    <RadzenDataGridColumn Property="@nameof(CategoryModel.Name)" Title="Kategori Adý" />
                     <RadzenDataGridColumn TItem="CategoryModel" Context="data" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px">
                         <Template Context="category">
                             <RadzenButton Icon="edit"
@@ -64,16 +65,19 @@
         </ChildContent>
         <ErrorContent Context="ex">
             <RadzenAlert AllowClose="false" AlertStyle="AlertStyle.Danger" ShowIcon="true">
-                Bir hata oluÅŸtu: @ex.Message
+                Bir hata oluþtu: @ex.Message
             </RadzenAlert>
         </ErrorContent>
     </ErrorBoundary>
 </CascadingValue>
 
 @code {
+
+
+
     private ErrorBoundary errorBoundary;
     private RadzenDataGrid<CategoryModel> grid;
-    private readonly string pagingSummaryFormat = "Sayfa {0} / {1} gÃ¶rÃ¼ntÃ¼leniyor (toplam {2} kayÄ±t)";
+    private readonly string pagingSummaryFormat = "Sayfa {0} / {1} görüntüleniyor (toplam {2} kayýt)";
 
     protected override void OnInitialized()
     {
@@ -83,10 +87,10 @@
     protected override async Task OnInitializedAsync()
     {
         var request = new DataGridRequest
-        {
-            DynamicQuery = new DynamicQuery { Filter = null, Sort = null },
-            PaginatedRequest = new PaginatedRequest { PageIndex = 0, PageSize = 10 },
-        };
+            {
+                DynamicQuery = new DynamicQuery { Filter = null, Sort = null },
+                PaginatedRequest = new PaginatedRequest { PageIndex = 0, PageSize = 10 },
+            };
 
         await State.LoadCategoriesAsync(request);
     }
@@ -114,24 +118,19 @@
     private async Task ShowAddCategoryDialog()
     {
         State.ResetCurrentCategory();
-        var options = new DialogOptions
-        {
-            Width = "500px",
-            Height = "auto",
-            CloseDialogOnEsc = true,
-            CloseDialogOnOverlayClick = false,
-            ShowClose = true
-        };
+
+        var config = new DialogHelper.DialogConfig("Yeni Kategori Ekle");
+        var options = DialogHelper.CreateOptions(config);
 
         await DialogService.OpenAsync<CategoryForm>("Yeni Kategori Ekle",
             new Dictionary<string, object>
-            {
+                            {
                 { "OnSaved", new EventCallback(this, async () => {
                     await grid.Reload();
                     DialogService.Close();
                 })},
                 { "OnCancel", new EventCallback(this, () => DialogService.Close()) }
-            }, options);
+                            }, options);
     }
 
     private async Task EditCategory(CategoryModel category)
@@ -139,24 +138,19 @@
         if (!State.IsSubmitting)
         {
             State.SetCurrentCategory(category);
-            var options = new DialogOptions
-            {
-                Width = "500px",
-                Height = "auto",
-                CloseDialogOnEsc = true,
-                CloseDialogOnOverlayClick = false,
-                ShowClose = true
-            };
 
-            await DialogService.OpenAsync<CategoryForm>("Kategori DÃ¼zenle",
+            var config = new DialogHelper.DialogConfig("Kategori Düzenle");
+            var options = DialogHelper.CreateOptions(config);
+
+            await DialogService.OpenAsync<CategoryForm>("Kategori Düzenle",
                 new Dictionary<string, object>
-                {
+                                {
                     { "OnSaved", new EventCallback(this, async () => {
                         await grid.Reload();
                         DialogService.Close();
                     })},
                     { "OnCancel", new EventCallback(this, () => DialogService.Close()) }
-                }, options);
+                                }, options);
         }
     }
 
@@ -164,19 +158,23 @@
     {
         try
         {
-            var confirmOptions = new ConfirmOptions
-            {
-                OkButtonText = "Evet",
-                CancelButtonText = "HayÄ±r"
-            };
+            var confirmOptions = DialogHelper.CreateConfirmOptions();
 
             if (await DialogService.Confirm(
-                    "Bu kategoriyi silmek istediÄŸinize emin misiniz?",
+                    "Bu kategoriyi silmek istediðinize emin misiniz?",
                     "Kategori Silme",
                     confirmOptions) == true)
             {
                 await State.DeleteCategoryAsync(category.Id);
-                NotificationService.Notify(NotificationSeverity.Success, "BaÅŸarÄ±lÄ±", "Kategori baÅŸarÄ±yla silindi.");
+                if (State.ResultCategory.Success)
+                {
+                    NotificationService.Notify(NotificationSeverity.Success, "Baþarýlý", State.ResultCategory.Message);
+                }
+                else
+                {
+                    NotificationService.Notify(NotificationSeverity.Error, "Hata", State.ResultCategory.Message);
+                }
+
                 await grid.Reload();
             }
         }
@@ -186,36 +184,28 @@
         }
     }
 
-    private void Cancel()
-    {
-        if (!State.IsSubmitting)
-        {
-            State.ResetCurrentCategory();
-        }
-    }
-
     async Task LoadData(LoadDataArgs args)
     {
         DataGridRequest dataGridRequest = new DataGridRequest
-        {
-            PaginatedRequest = new PaginatedRequest
             {
-                PageIndex = (args.Skip.Value / args.Top.Value),
-                PageSize = args.Top.Value,
-            },
-            DynamicQuery = new DynamicQuery
-            {
-                Filter = null,
-                Sort = null
-            }
-        };
+                PaginatedRequest = new PaginatedRequest
+                {
+                    PageIndex = (args.Skip.Value / args.Top.Value),
+                    PageSize = args.Top.Value,
+                },
+                DynamicQuery = new DynamicQuery
+                {
+                    Filter = null,
+                    Sort = null
+                }
+            };
 
         await Task.Yield();
 
         Filter baseFilter = new Filter()
-        {
-            Filters = new List<Filter>()
-        };
+            {
+                Filters = new List<Filter>()
+            };
 
         void AddFirsFilter(Filter filter)
         {
@@ -229,19 +219,6 @@
                 if (string.IsNullOrEmpty(baseFilter.Value))
                 {
                     AddFirsFilter(new Filter
-                    {
-                        Field = argFilt.Property,
-                        Value = (argFilt.FilterValue.ToString()).ToLower(),
-                        Operator = argFilt.FilterOperator.GetDisplayDescription(),
-                        Logic = argFilt.LogicalFilterOperator.GetDisplayDescription(),
-                        Filters = new List<Filter>()
-                    });
-                }
-                else
-                {
-                    if (!(baseFilter.Field == argFilt.Property) && !baseFilter.Filters.Any(x => x.Field == argFilt.Property))
-                    {
-                        baseFilter.Filters.Add(new Filter
                         {
                             Field = argFilt.Property,
                             Value = (argFilt.FilterValue.ToString()).ToLower(),
@@ -249,6 +226,19 @@
                             Logic = argFilt.LogicalFilterOperator.GetDisplayDescription(),
                             Filters = new List<Filter>()
                         });
+                }
+                else
+                {
+                    if (!(baseFilter.Field == argFilt.Property) && !baseFilter.Filters.Any(x => x.Field == argFilt.Property))
+                    {
+                        baseFilter.Filters.Add(new Filter
+                            {
+                                Field = argFilt.Property,
+                                Value = (argFilt.FilterValue.ToString()).ToLower(),
+                                Operator = argFilt.FilterOperator.GetDisplayDescription(),
+                                Logic = argFilt.LogicalFilterOperator.GetDisplayDescription(),
+                                Filters = new List<Filter>()
+                            });
                     }
                 }
             }
@@ -256,19 +246,19 @@
         else
         {
             baseFilter = new Filter()
-            {
-                Filters = new List<Filter>()
-            };
+                {
+                    Filters = new List<Filter>()
+                };
         }
 
         var sorts = new List<Sort>();
         foreach (var sort in args.Sorts)
         {
             sorts.Add(new Sort
-            {
-                Field = sort.Property,
-                Dir = sort.SortOrder.Value.ToString()
-            });
+                {
+                    Field = sort.Property,
+                    Dir = sort.SortOrder.Value.ToString()
+                });
         }
 
         dataGridRequest.DynamicQuery.Filter = baseFilter.Value != null ? baseFilter : null;

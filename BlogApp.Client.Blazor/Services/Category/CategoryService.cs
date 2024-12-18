@@ -34,10 +34,10 @@ public class CategoryService(IHttpClientService httpClientService) : ICategorySe
         return response;
     }
 
-    public async Task<bool> DeleteCategoryAsync(int categoryId)
+    public async Task<CategoryModel> DeleteCategoryAsync(int categoryId)
     {
         var response = await httpClientService
-            .DeleteAsync<bool>($"category/Delete/{categoryId}");
+            .DeleteAsync<CategoryModel>($"category/Delete/{categoryId}");
 
         return response;
     }

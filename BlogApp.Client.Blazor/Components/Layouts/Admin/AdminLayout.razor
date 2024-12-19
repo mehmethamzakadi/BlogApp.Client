@@ -1,4 +1,4 @@
-﻿@using BlogApp.Client.Blazor.States.Auth
+@using BlogApp.Client.Blazor.States.Auth
 @inject AuthenticationStateProvider AuthStateProvider
 @inject NavigationManager _navigationManager
 
@@ -6,23 +6,100 @@
 
 <RadzenComponents @rendermode="InteractiveServer" />
 
+<style>
+    :root {
+        --custom-danger: #d32f2f;
+        --custom-danger-dark: #b71c1c;
+    }
+
+    .user-info {
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+    }
+
+    .user-info:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .welcome-text {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: -2px;
+    }
+
+    .username-text {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: white;
+    }
+
+    .divider {
+        width: 1px;
+        height: 1.75rem;
+        background-color: rgba(255, 255, 255, 0.2);
+        margin: 0 0.75rem;
+    }
+
+    .logout-btn {
+        padding: 0.35rem 0.6rem !important;
+        font-size: 0.8rem !important;
+        border-radius: 0.25rem !important;
+        transition: all 0.2s ease !important;
+        background-color: var(--custom-danger) !important;
+        color: white !important;
+        border: none !important;
+    }
+
+    .logout-btn:hover {
+        background-color: var(--custom-danger-dark) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .header-content {
+        padding: 0.5rem 1rem;
+    }
+    
+    .user-icon {
+        font-size: 1.25rem;
+        color: rgba(255, 255, 255, 0.9);
+    }
+</style>
 
 @if (IsShowContent)
 {
     <RadzenLayout>
         <RadzenHeader>
-            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween">
+            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween" class="header-content">
                 <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
                     <RadzenSidebarToggle Click="@(() => sidebar1Expanded = !sidebar1Expanded)" />
-                    <RadzenLabel Text="Header" />
+                    <RadzenLabel Text="Blog Yönetim Paneli" />
                 </RadzenStack>
 
                 <AuthorizeView>
                     <Authorized>
-                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem">
-                            <RadzenLabel Text="Hoşgeldiniz," /> <div>@user.Identity?.Name!</div>
-                            <RadzenLink @onclick="Logout">Çıkış Yap</RadzenLink>
-                            <RadzenAppearanceToggle />
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0">
+                            <div class="d-flex align-items-center">
+                                <div class="user-info d-flex align-items-center gap-2">
+                                    <i class="rzi rzi-user-circle user-icon"></i>
+                                    <div class="d-flex flex-column">
+                                        <span class="welcome-text">Hoşgeldiniz</span>
+                                        <span class="username-text">@user.Identity?.Name</span>
+                                    </div>
+                                </div>
+                                <div class="divider"></div>
+                                <RadzenButton Click="Logout" 
+                                            ButtonStyle="ButtonStyle.Danger" 
+                                            Size="ButtonSize.Small"
+                                            Icon="logout" 
+                                            class="logout-btn"
+                                            Text="Çıkış Yap" />
+                                <div class="divider"></div>
+                                <div class="ms-2">
+                                    <RadzenAppearanceToggle />
+                                </div>
+                            </div>
                         </RadzenStack>
                     </Authorized>
                 </AuthorizeView>
@@ -30,7 +107,7 @@
         </RadzenHeader>
         <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
             <RadzenPanelMenu Click="OnParentClicked" Multiple="true">
-                <RadzenPanelMenuItem Text="Dashboard" Path="/Admin" Icon="dashboard"></RadzenPanelMenuItem>
+                <RadzenPanelMenuItem Text="Dashboard" Path="/Admin"  Icon="dashboard"></RadzenPanelMenuItem>
                 <RadzenPanelMenuItem Text="Kategori Yönetimi" Path="/Admin/Categories" Click="@(()=> selectedMenu = !selectedMenu)" Selected="@selectedMenu" Icon="category"></RadzenPanelMenuItem>
 
                 <RadzenPanelMenuItem Text="Makaleler" Icon="home">
@@ -56,7 +133,6 @@
 }
 
 @code {
-
     bool sidebar1Expanded = true;
     bool selectedMenu = false;
 

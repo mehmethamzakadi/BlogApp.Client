@@ -1,0 +1,103 @@
+@using BlogApp.Client.Blazor.Models
+@using BlogApp.Client.Blazor.Services.Common
+@using System.ComponentModel.DataAnnotations
+@using BlogApp.Client.Blazor.States.User
+
+@inject UserState State
+@inject NotificationService NotificationService
+@inject IExceptionHandlerService ExceptionHandler
+
+<EditForm Model="@State.CurrentUser" OnValidSubmit="@Submit">
+    <DataAnnotationsValidator />
+    <RadzenRow class="rz-mx-auto" Style="max-width: 800px;">
+        <RadzenColumn Size="12">
+            <RadzenStack>
+                <RadzenFieldset Text="@(State.CurrentUser.Id == 0 ? "Kullanıcı Ekle" : "Kullanıcı Düzenle")">
+                    <RadzenStack Gap="1.5rem">
+                        <RadzenRow AlignItems="AlignItems.Center">
+                            <RadzenColumn Size="12" SizeSM="4" class="mb-2 mb-sm-0">
+                                <RadzenLabel Text="Kullanıcı Adı" Component="Name" Style="font-weight: 500;" />
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeSM="8">
+                                <RadzenTextBox Style="width: 100%;"
+                                              Name="Name"
+                                               @bind-Value="@State.CurrentUser.UserName"
+                                              Disabled="@State.IsSubmitting" />
+                                <ValidationMessage For="@(() => State.CurrentUser.UserName)"
+                                                   class="rz-text-danger d-block mt-1"/>
+                            </RadzenColumn>
+                        </RadzenRow>
+                        <RadzenRow AlignItems="AlignItems.Center">
+                            <RadzenColumn Size="12" SizeSM="4" class="mb-2 mb-sm-0">
+                                <RadzenLabel Text="EMail" Component="Name" Style="font-weight: 500;" />
+                            </RadzenColumn>
+                            <RadzenColumn Size="12" SizeSM="8">
+                                <RadzenTextBox Style="width: 100%;"
+                                               Name="Name"
+                                               @bind-Value="@State.CurrentUser.Email"
+                                               Disabled="@State.IsSubmitting" />
+                                <ValidationMessage For="@(() => State.CurrentUser.Email)"
+                                                   class="rz-text-danger d-block mt-1" />
+                            </RadzenColumn>
+                        </RadzenRow>
+                    </RadzenStack>
+                </RadzenFieldset>
+            </RadzenStack>
+        </RadzenColumn>
+    </RadzenRow>
+    <RadzenStack Orientation="@(Orientation.Horizontal)" 
+                 JustifyContent="JustifyContent.Center" 
+                 Gap="1rem" 
+                 class="rz-mt-6 rz-mb-4 rz-p-2">
+        <RadzenButton ButtonType="ButtonType.Submit"
+                     Size="ButtonSize.Medium"
+                     Icon="save"
+                     Text="Kaydet"
+                     Disabled="@State.IsSubmitting"
+                     IsBusy="@State.IsSubmitting"
+                     Style="min-width: 120px;"
+                     BusyText="Kaydediliyor..." />
+        <RadzenButton ButtonStyle="ButtonStyle.Light"
+                     Variant="Variant.Flat"
+                     Size="ButtonSize.Medium"
+                     Icon="cancel"
+                     Text="İptal"
+                     Style="min-width: 120px;"
+                     Disabled="@State.IsSubmitting"
+                     Click="@OnCancel" />
+    </RadzenStack>
+</EditForm>
+
+@code {
+    [Parameter]
+    public EventCallback OnSaved { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    private async Task Submit()
+    {
+        try
+        {
+            await State.SaveUserAsync();
+
+          
+
+            if (State.ResultUser.Success)
+            {
+                NotificationService.Notify(NotificationSeverity.Success, "Başarılı", State.ResultUser.Message);
+            }
+            else {
+                NotificationService.Notify(NotificationSeverity.Error, "Hata", State.ResultUser.Message);
+            }
+
+            // NotificationService.Notify(NotificationSeverity.Success, "Başarılı", message);
+            State.ResetCurrentUser();
+            await OnSaved.InvokeAsync();
+        }
+        catch (Exception ex)
+        {
+            await ExceptionHandler.HandleExceptionAsync(ex, NotificationService);
+        }
+    }
+}

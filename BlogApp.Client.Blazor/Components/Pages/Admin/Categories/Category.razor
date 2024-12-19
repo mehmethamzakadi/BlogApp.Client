@@ -72,9 +72,6 @@
 </CascadingValue>
 
 @code {
-
-
-
     private ErrorBoundary errorBoundary;
     private RadzenDataGrid<CategoryModel> grid;
     private readonly string pagingSummaryFormat = "Sayfa {0} / {1} görüntüleniyor (toplam {2} kayýt)";
@@ -86,13 +83,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var request = new DataGridRequest
-            {
-                DynamicQuery = new DynamicQuery { Filter = null, Sort = null },
-                PaginatedRequest = new PaginatedRequest { PageIndex = 0, PageSize = 10 },
-            };
-
-        await State.LoadCategoriesAsync(request);
+        await State.LoadCategoriesAsync(DataGridHelper.SetDefaultDataGridRequest());
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -124,13 +115,13 @@
 
         await DialogService.OpenAsync<CategoryForm>("Yeni Kategori Ekle",
             new Dictionary<string, object>
-                            {
+                                    {
                 { "OnSaved", new EventCallback(this, async () => {
                     await grid.Reload();
                     DialogService.Close();
                 })},
                 { "OnCancel", new EventCallback(this, () => DialogService.Close()) }
-                            }, options);
+                                    }, options);
     }
 
     private async Task EditCategory(CategoryModel category)
@@ -144,13 +135,13 @@
 
             await DialogService.OpenAsync<CategoryForm>("Kategori Düzenle",
                 new Dictionary<string, object>
-                                {
+                                        {
                     { "OnSaved", new EventCallback(this, async () => {
                         await grid.Reload();
                         DialogService.Close();
                     })},
                     { "OnCancel", new EventCallback(this, () => DialogService.Close()) }
-                                }, options);
+                                        }, options);
         }
     }
 
@@ -186,84 +177,7 @@
 
     async Task LoadData(LoadDataArgs args)
     {
-        DataGridRequest dataGridRequest = new DataGridRequest
-            {
-                PaginatedRequest = new PaginatedRequest
-                {
-                    PageIndex = (args.Skip.Value / args.Top.Value),
-                    PageSize = args.Top.Value,
-                },
-                DynamicQuery = new DynamicQuery
-                {
-                    Filter = null,
-                    Sort = null
-                }
-            };
-
-        await Task.Yield();
-
-        Filter baseFilter = new Filter()
-            {
-                Filters = new List<Filter>()
-            };
-
-        void AddFirsFilter(Filter filter)
-        {
-            baseFilter = filter;
-        }
-
-        if (args.Filters.Any())
-        {
-            foreach (var argFilt in args.Filters)
-            {
-                if (string.IsNullOrEmpty(baseFilter.Value))
-                {
-                    AddFirsFilter(new Filter
-                        {
-                            Field = argFilt.Property,
-                            Value = (argFilt.FilterValue.ToString()).ToLower(),
-                            Operator = argFilt.FilterOperator.GetDisplayDescription(),
-                            Logic = argFilt.LogicalFilterOperator.GetDisplayDescription(),
-                            Filters = new List<Filter>()
-                        });
-                }
-                else
-                {
-                    if (!(baseFilter.Field == argFilt.Property) && !baseFilter.Filters.Any(x => x.Field == argFilt.Property))
-                    {
-                        baseFilter.Filters.Add(new Filter
-                            {
-                                Field = argFilt.Property,
-                                Value = (argFilt.FilterValue.ToString()).ToLower(),
-                                Operator = argFilt.FilterOperator.GetDisplayDescription(),
-                                Logic = argFilt.LogicalFilterOperator.GetDisplayDescription(),
-                                Filters = new List<Filter>()
-                            });
-                    }
-                }
-            }
-        }
-        else
-        {
-            baseFilter = new Filter()
-                {
-                    Filters = new List<Filter>()
-                };
-        }
-
-        var sorts = new List<Sort>();
-        foreach (var sort in args.Sorts)
-        {
-            sorts.Add(new Sort
-                {
-                    Field = sort.Property,
-                    Dir = sort.SortOrder.Value.ToString()
-                });
-        }
-
-        dataGridRequest.DynamicQuery.Filter = baseFilter.Value != null ? baseFilter : null;
-        dataGridRequest.DynamicQuery.Sort = sorts.Count > 0 ? sorts : null;
-
+        var dataGridRequest = await DataGridHelper.SetDataGridRequest(args);
         await State.LoadCategoriesAsync(dataGridRequest);
     }
 }

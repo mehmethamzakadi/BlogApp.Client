@@ -1,7 +1,183 @@
 ﻿@page "/Admin/Users";
+@using BlogApp.Client.Blazor.Models
+@using BlogApp.Client.Blazor.Services.Common
+@using BlogApp.Client.Blazor.Services.DataGrid
+@using BlogApp.Client.Blazor.SharedKernel.Models
+@using BlogApp.Client.Blazor.Helpers
+@using BlogApp.Client.Blazor.States.User
+@using Microsoft.AspNetCore.Authorization
+@implements IDisposable
 
-<h3>Kullanıcılar</h3>
+@attribute [Authorize(Roles = "Admin")]
+@inject UserState State
+@inject NotificationService NotificationService
+@inject IExceptionHandlerService ExceptionHandler
+@inject DialogService DialogService
+@inject IFilterService FilterService
+@rendermode InteractiveServer
+
+<CascadingValue Value="this">
+    <ErrorBoundary @ref="errorBoundary">
+        <ChildContent>
+            <div class="mb-3">
+                <RadzenButton ButtonStyle="ButtonStyle.Primary"
+                              Icon="add"
+                              Text="Yeni Kullanıcı Ekle"
+                              Click="@ShowAddUserDialog" />
+            </div>
+
+            <RadzenDataGrid @ref="grid"
+                            IsLoading="@State.IsLoading"
+                            Data="@State.Users"
+                            Count="@State.TotalCount"
+                            LoadData="@LoadData"
+                            AllowSorting="true"
+                            AllowFiltering="true"
+                            FilterMode="FilterMode.Simple"
+                            FilterCaseSensitivity="@FilterCaseSensitivity.CaseInsensitive"
+                            LogicalFilterOperator="@LogicalFilterOperator.And"
+                            PagingSummaryFormat="@pagingSummaryFormat"
+                            PageSize="10"
+                            PageSizeOptions="@(new int[] { 10, 20, 30 })"
+                            ShowPagingSummary="true"
+                            AllowPaging="true">
+                <Columns>
+                    <RadzenDataGridColumn Property="@nameof(UserModel.UserName)" Title="Kullanıcı Adı" />
+                    <RadzenDataGridColumn Property="@nameof(UserModel.Email)" Title="Email" />
+                    <RadzenDataGridColumn TItem="UserModel" Context="data" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px">
+                        <Template Context="user">
+                            <RadzenButton Icon="edit"
+                                          ButtonStyle="ButtonStyle.Info"
+                                          Variant="Variant.Flat"
+                                          Size="ButtonSize.Medium"
+                                          Click="@(() => EditUser(user))"
+                                          Disabled="@State.IsSubmitting" />
+                            <RadzenButton Icon="delete"
+                                          ButtonStyle="ButtonStyle.Danger"
+                                          Variant="Variant.Flat"
+                                          Size="ButtonSize.Medium"
+                                          Click="@(async () => await DeleteUser(user))"
+                                          Disabled="@State.IsSubmitting" />
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
+        </ChildContent>
+        <ErrorContent Context="ex">
+            <RadzenAlert AllowClose="false" AlertStyle="AlertStyle.Danger" ShowIcon="true">
+                Bir hata oluştu: @ex.Message
+            </RadzenAlert>
+        </ErrorContent>
+    </ErrorBoundary>
+</CascadingValue>
 
 @code {
+    private ErrorBoundary errorBoundary;
+    private RadzenDataGrid<UserModel> grid;
+    private readonly string pagingSummaryFormat = "Sayfa {0} / {1} görüntüleniyor (toplam {2} kayıt)";
 
+    protected override void OnInitialized()
+    {
+        State.OnStateChanged += StateHasChanged;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await State.LoadUserAsync(DataGridHelper.SetDefaultDataGridRequest());
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await grid.Reload();
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        State.OnStateChanged -= StateHasChanged;
+        GC.SuppressFinalize(this);
+    }
+
+    protected override void OnParametersSet()
+    {
+        errorBoundary?.Recover();
+    }
+
+    private async Task ShowAddUserDialog()
+    {
+        State.ResetCurrentUser();
+
+        var config = new DialogHelper.DialogConfig("Yeni Kategori Ekle");
+        var options = DialogHelper.CreateOptions(config);
+
+        await DialogService.OpenAsync<UserForm>("Yeni Kategori Ekle",
+            new Dictionary<string, object>
+                                            {
+                { "OnSaved", new EventCallback(this, async () => {
+                    await grid.Reload();
+                    DialogService.Close();
+                })},
+                { "OnCancel", new EventCallback(this, () => DialogService.Close()) }
+                                            }, options);
+    }
+
+    private async Task EditUser(UserModel user)
+    {
+        if (!State.IsSubmitting)
+        {
+            State.SetCurrentUser(user);
+
+            var config = new DialogHelper.DialogConfig("Kategori Düzenle");
+            var options = DialogHelper.CreateOptions(config);
+
+            await DialogService.OpenAsync<UserForm>("Kategori Düzenle",
+                new Dictionary<string, object>
+                                                {
+                    { "OnSaved", new EventCallback(this, async () => {
+                        await grid.Reload();
+                        DialogService.Close();
+                    })},
+                    { "OnCancel", new EventCallback(this, () => DialogService.Close()) }
+                                                }, options);
+        }
+    }
+
+    private async Task DeleteUser(UserModel user)
+    {
+        try
+        {
+            var confirmOptions = DialogHelper.CreateConfirmOptions();
+
+            if (await DialogService.Confirm(
+                    "Bu kategoriyi silmek istediğinize emin misiniz?",
+                    "Kategori Silme",
+                    confirmOptions) == true)
+            {
+                await State.DeleteUserAsync(user.Id);
+                if (State.ResultUser.Success)
+                {
+                    NotificationService.Notify(NotificationSeverity.Success, "Başarılı", State.ResultUser.Message);
+                }
+                else
+                {
+                    NotificationService.Notify(NotificationSeverity.Error, "Hata", State.ResultUser.Message);
+                }
+
+                await grid.Reload();
+            }
+        }
+        catch (Exception ex)
+        {
+            await ExceptionHandler.HandleExceptionAsync(ex, NotificationService);
+        }
+    }
+
+    async Task LoadData(LoadDataArgs args)
+    {
+        var dataGridRequest = await DataGridHelper.SetDataGridRequest(args);
+        await State.LoadUserAsync(dataGridRequest);
+    }
 }

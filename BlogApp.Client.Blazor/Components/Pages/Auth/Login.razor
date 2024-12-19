@@ -1,81 +1,109 @@
-﻿@page "/Login";
+@page "/login"
+@using BlogApp.Client.Blazor.Models.Auth;
+@using BlogApp.Client.Blazor.Services.Auth;
 @using BlogApp.Client.Blazor.States.Auth
+@using Microsoft.AspNetCore.Components.Authorization;
 
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+@inject NotificationService NotificationService
 @inject AuthenticationStateProvider AuthStateProvider
-@inject NavigationManager _navigationManager
-@inject IAuthService userService
 
-@rendermode InteractiveServer
+<PageTitle>Login</PageTitle>
 
-<Loading isLoading="isLoading" />
-<section class="vh-100 gradient-custom">
-    <div class="container py-5 h-100">
-        <div class="row d-flex justify-content-center align-items-center h-100">
-            <div class="col-12 col-md-8 col-lg-6 col-xl-5">
-                <div class="card bg-dark text-white" style="border-radius: 1rem;">
-                    <div class="card-body p-5 text-center">
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h2>Hoşgeldiniz!</h2>
+            <p>Devam etmek için lütfen oturum açın.</p>
+        </div>
 
-                        <EditForm Model="loginModel" OnValidSubmit="OnValidSubmit">
-                            <div class="mb-md-5 mt-md-4 pb-5">
-                                <h2 class="fw-bold mb-2 text-uppercase">GİRİŞ YAP</h2>
-                                <p class="text-white-50 mb-5">Lütfen kullanıcı adınızı ve şifrenizi giriniz!</p>
-
-                                <div class="form-outline form-white mb-4">
-                                    <label class="form-label" for="typeEmailX">Email</label>
-                                    <InputText id="typeEmailX" class="form-control form-control-lg" @bind-Value="loginModel.Email" />
-                                </div>
-                                <div class="form-outline form-white mb-4">
-                                    <label class="form-label" for="typePasswordX">Şifre</label>
-                                    <InputText type="password" id="typePasswordX" class="form-control form-control-lg" @bind-Value="loginModel.Password" />
-                                </div>
-
-                                <p class="small mb-5 pb-lg-2">
-                                    <a class="text-white-50" href="#!">Parolanızı mı unuttunuz?</a>
-                                </p>
-
-                                <button class="btn btn-outline-light btn-lg px-5" type="submit">Giriş</button>
-
-                                <div class="d-flex justify-content-center text-center mt-4 pt-1">
-                                    <a href="#!" class="text-white"><i class="fab fa-facebook-f fa-lg"></i></a>
-                                    <a href="#!" class="text-white"><i class="fab fa-twitter fa-lg mx-4 px-2"></i></a>
-                                    <a href="#!" class="text-white"><i class="fab fa-google fa-lg"></i></a>
-                                </div>
-                            </div>
-                        </EditForm>
-
-                        <div>
-                            <p class="mb-0">
-                                Hesabınız yok mu? <a href="#!" class="text-white-50 fw-bold">Üye Ol</a>
-                            </p>
-                        </div>
-
+        <RadzenTemplateForm class="login-form" TItem="LoginRequest" Data=@model Submit=@OnSubmit>
+            <div class="form-container">
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        <RadzenIcon Icon="email" class="input-icon" />
+                        <RadzenTextBox 
+                            Name="Email" 
+                            @bind-Value=@model.Email 
+                            Placeholder="Email adresinizi giriniz"
+                            aria-label="Email giriş alanı"
+                            class="login-input" />
+                    </div>
+                    <div class="validation-wrapper">
+                        <RadzenRequiredValidator Component="Email" Text="Email zorunlu" />
+                        <RadzenEmailValidator Component="Email" Text="Lütfen geçerli bir email adresi giriniz" />
                     </div>
                 </div>
+
+                <div class="form-group">
+                    <div class="input-wrapper">
+                        <RadzenIcon Icon="lock" class="input-icon" />
+                        <RadzenPassword 
+                            Name="Password" 
+                            @bind-Value=@model.Password 
+                            Placeholder="Şifrenizi giriniz"
+                            aria-label="Şifre giriş alanı"
+                            class="login-input" />
+                    </div>
+                    <div class="validation-wrapper">
+                        <RadzenRequiredValidator Component="Password" Text="Şifre zorunlu" />
+                    </div>
+                </div>
+
+                <div class="remember-forgot">
+                    <div class="remember-me">
+                        <RadzenCheckBox @bind-Value=@model.RememberMe Name="RememberMe" />
+                        <RadzenLabel Text="Beni hatırla" Component="RememberMe" Style="margin-left: 8px;" />
+                    </div>
+                    <a href="/forgot-password" class="forgot-link">Şifrenizi mi unuttunuz?</a>
+                </div>
+
+                <div class="button-wrapper">
+                    <RadzenButton ButtonType="ButtonType.Submit" 
+                                Text="Giriş Yap" 
+                                ButtonStyle="ButtonStyle.Primary" 
+                                Class="login-button"
+                                IsBusy=@isBusy 
+                                BusyText="Giriş yapılıyor..." />
+                </div>
             </div>
+        </RadzenTemplateForm>
+
+        <div class="login-footer">
         </div>
     </div>
-</section>
+</div>
 
 @code {
-    private bool isLoading = false;
-    private LoginModel loginModel = new LoginModel();
+    private LoginRequest model = new();
+    private bool isBusy = false;
 
-    private async Task OnValidSubmit()
+    private async Task OnSubmit()
     {
-        // Giriş işlemleri burada yapılabilir
-        isLoading = true;
-        var result = await userService.LoginUser(new LoginRequest { Email = loginModel.Email, Password = loginModel.Password });
-        isLoading = false;
-        if (result.Success)
+        try
         {
-            await ((CustomAuthStateProvider)AuthStateProvider).MarkUserAsAuthenticated(result.Data);
-            _navigationManager.NavigateTo("/Admin");
+            isBusy = true;
+            var result = await AuthService.LoginUser(model);
+            
+            if (result.Success)
+            {
+                await ((CustomAuthStateProvider)AuthStateProvider).MarkUserAsAuthenticated(result.Data);
+                NotificationService.Notify(NotificationSeverity.Success, "Başarılı", "Giriş başarılı!");
+                NavigationManager.NavigateTo("/", true);
+            }
+            else
+            {
+                NotificationService.Notify(NotificationSeverity.Error, "Hata", result.Message);
+            }
         }
-    }
-
-    public class LoginModel
-    {
-        public string Email { get; set; }
-        public string Password { get; set; }
+        catch (Exception ex)
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Hata", "Giriş sırasında bir hata oluştu.");
+        }
+        finally
+        {
+            isBusy = false;
+        }
     }
 }

@@ -3,9 +3,11 @@ using BlogApp.Client.Blazor.Services.Auth;
 using BlogApp.Client.Blazor.Services.Category;
 using BlogApp.Client.Blazor.Services.Common;
 using BlogApp.Client.Blazor.Services.DataGrid;
+using BlogApp.Client.Blazor.Services.User;
 using BlogApp.Client.Blazor.SharedKernel.Services;
 using BlogApp.Client.Blazor.States.Auth;
 using BlogApp.Client.Blazor.States.Category;
+using BlogApp.Client.Blazor.States.User;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Radzen;
@@ -37,9 +39,13 @@ builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>
 builder.Services.AddScoped<IHttpClientService, HttpClientService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
 builder.Services.AddScoped<IExceptionHandlerService, ExceptionHandlerService>();
 builder.Services.AddScoped<IFilterService, FilterService>();
 builder.Services.AddScoped<CategoryState>();
+builder.Services.AddScoped<UserState>();
+
 
 // Radzen services
 builder.Services.AddScoped<DialogService>();

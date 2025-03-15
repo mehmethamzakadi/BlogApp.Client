@@ -1,7 +1,159 @@
-﻿@page "/"
+@page "/"
+@using Radzen
+@using Radzen.Blazor
 
-<PageTitle>Home</PageTitle>
+<div class="rz-p-4">
+    <!-- Hero Section -->
+    <RadzenCard Class="hero-section rz-mb-6" Style="background: linear-gradient(90deg, #4C3AE3 0%, #E91E63 100%);">
+        <div class="rz-p-6 rz-text-align-center">
+            <RadzenText TextStyle="TextStyle.H1" Class="rz-color-white rz-mb-4">Hoş Geldiniz!</RadzenText>
+            <RadzenText TextStyle="TextStyle.H6" Class="rz-color-white">
+                En son teknoloji ve yazılım trendleri hakkında bilgi edinebileceğiniz blog sayfama hoş geldiniz.
+            </RadzenText>
+        </div>
+    </RadzenCard>
 
-<h1>Hello, world!</h1>
+    <!-- Öne Çıkan Yazılar -->
+    @* <RadzenText TextStyle="TextStyle.H3" Class="rz-mb-6">Öne Çıkan Yazılar</RadzenText> *@
+    
+    <RadzenRow JustifyContent="@justifyContent" AlignItems="@alignItems" Gap="@gap">
+        @foreach (var post in FeaturedPosts)
+        {
+            <RadzenColumn SizeSM="12" SizeMD="6" SizeLG="4" SizeXL="3" class="rz-p-2">
+                <RadzenCard Class="featured-post h-100">
+                    <RadzenImage Path="@post.ImageUrl" Style="width: 100%; height: 160px; object-fit: cover;"
+                               Class="rz-border-radius-4 rz-mb-4"/>
+                    <div class="rz-p-3">
+                        <div class="blog-date">
+                            <RadzenIcon Icon="event" Class="date-icon"/>
+                            <span class="date-text">@post.Date.ToShortDateString()</span>
+                        </div>
+                        <RadzenText TextStyle="TextStyle.H6" Class="rz-mb-2">@post.Title</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2" Class="rz-mb-4 post-summary">@post.Summary</RadzenText>
+                        <div class="rz-mt-auto">
+                            <RadzenButton Text="Devamını Oku" ButtonStyle="ButtonStyle.Primary" 
+                                        Class="rz-w-100" Click=@(() => NavigateToPost(post.Slug))/>
+                        </div>
+                    </div>
+                </RadzenCard>
+            </RadzenColumn>
+        }
+    </RadzenRow>
 
+    <!-- Newsletter Section -->
+    <RadzenCard Class="newsletter-section rz-mt-8">
+        <div class="rz-p-6 rz-text-align-center">
+            <RadzenText TextStyle="TextStyle.H4" Class="rz-mb-4">Yeni Yazılardan Haberdar Olun</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body1" Class="rz-mb-6">
+                Blog yazılarımdan haberdar olmak için e-posta listeme katılın.
+            </RadzenText>
+            <div class="rz-d-flex rz-flex-wrap rz-justify-content-center rz-align-items-center">
+                <RadzenTextBox Placeholder="E-posta adresiniz"
+                              Class="rz-mr-4 rz-mb-4 rz-mb-md-0"
+                              Style="width: 300px;"
+                              @bind-Value="@emailAddress"/>
+                <RadzenButton Text="Abone Ol"
+                            ButtonStyle="ButtonStyle.Primary"
+                            Click="@SubscribeToNewsletter"/>
+            </div>
+        </div>
+    </RadzenCard>
+</div>
 
+<style>
+    ::deep .featured-post {
+        transition: transform 0.2s;
+        height: 100%;
+    }
+    
+    ::deep .featured-post:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    ::deep .post-summary {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    ::deep .hero-section {
+        border: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    ::deep .blog-date {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+
+    ::deep .date-icon {
+        font-size: 18px;
+        color: #666;
+        margin-right: 6px;
+        display: flex;
+        align-items: center;
+    }
+
+    ::deep .date-text {
+        font-size: 14px;
+        color: #666;
+        line-height: 1;
+        margin-top: 2px;
+    }
+</style>
+
+@code {
+    private string emailAddress;
+    AlignItems alignItems = AlignItems.Start;
+    JustifyContent justifyContent = JustifyContent.Start;
+    string gap = "1rem";
+
+     private List<BlogPost> FeaturedPosts = new List<BlogPost>
+ {
+     new BlogPost { Title = "Mikroservis Mimarisi 1", Summary = "Mikroservis mimarisi detayları...", ImageUrl = "https://t4.ftcdn.net/jpg/03/48/34/83/360_F_348348330_QrvBjavPIcKKN6SxTYakAfIZljM0kKi0.jpg", Date = DateTime.Now.AddDays(-5), Slug = "mikroservis-1" },
+     new BlogPost { Title = "Docker Kullanımı 1", Summary = "Docker kullanım detayları...", ImageUrl = "https://t4.ftcdn.net/jpg/03/48/34/83/360_F_348348330_QrvBjavPIcKKN6SxTYakAfIZljM0kKi0.jpg", Date = DateTime.Now.AddDays(-4), Slug = "docker-1" },
+     new BlogPost { Title = "Azure DevOps 1", Summary = "Azure DevOps kullanımı...", ImageUrl = "https://t4.ftcdn.net/jpg/03/48/34/83/360_F_348348330_QrvBjavPIcKKN6SxTYakAfIZljM0kKi0.jpg", Date = DateTime.Now.AddDays(-3), Slug = "azure-1" },
+     new BlogPost { Title = "Clean Architecture 1", Summary = "Clean Architecture prensipleri...", ImageUrl = "https://t4.ftcdn.net/jpg/03/48/34/83/360_F_348348330_QrvBjavPIcKKN6SxTYakAfIZljM0kKi0.jpg", Date = DateTime.Now.AddDays(-2), Slug = "clean-1" },
+
+     new BlogPost { Title = "Mikroservis Mimarisi 2", Summary = "Mikroservis mimarisi detayları...", ImageUrl = "https://t4.ftcdn.net/jpg/03/48/34/83/360_F_348348330_QrvBjavPIcKKN6SxTYakAfIZljM0kKi0.jpg", Date = DateTime.Now.AddDays(-5), Slug = "mikroservis-2" },
+     new BlogPost { Title = "Docker Kullanımı 2", Summary = "Docker kullanım detayları...", ImageUrl = "https://t4.ftcdn.net/jpg/03/48/34/83/360_F_348348330_QrvBjavPIcKKN6SxTYakAfIZljM0kKi0.jpg", Date = DateTime.Now.AddDays(-4), Slug = "docker-2" },
+     new BlogPost { Title = "Azure DevOps 2", Summary = "Azure DevOps kullanımı...", ImageUrl = "https://t4.ftcdn.net/jpg/03/48/34/83/360_F_348348330_QrvBjavPIcKKN6SxTYakAfIZljM0kKi0.jpg", Date = DateTime.Now.AddDays(-3), Slug = "azure-2" },
+     new BlogPost { Title = "Clean Architecture 2", Summary = "Clean Architecture prensipleri...", ImageUrl = "https://t4.ftcdn.net/jpg/03/48/34/83/360_F_348348330_QrvBjavPIcKKN6SxTYakAfIZljM0kKi0.jpg", Date = DateTime.Now.AddDays(-2), Slug = "clean-2" },
+ };
+
+    [Inject]
+    private NavigationManager NavigationManager { get; set; }
+
+    [Inject]
+    private NotificationService NotificationService { get; set; }
+
+    private void NavigateToPost(string slug)
+    {
+        NavigationManager.NavigateTo($"/blog/{slug}");
+    }
+
+    private void SubscribeToNewsletter()
+    {
+        if (string.IsNullOrWhiteSpace(emailAddress))
+        {
+            NotificationService.Notify(NotificationSeverity.Error, "Hata", "Lütfen e-posta adresinizi girin.");
+            return;
+        }
+
+        NotificationService.Notify(NotificationSeverity.Success, "Başarılı", "E-posta listemize başarıyla kaydoldunuz.");
+        emailAddress = string.Empty;
+    }
+
+    public class BlogPost
+    {
+        public string Title { get; set; }
+        public string Summary { get; set; }
+        public string ImageUrl { get; set; }
+        public DateTime Date { get; set; }
+        public string[] Tags { get; set; }
+        public string Slug { get; set; }
+    }
+}
